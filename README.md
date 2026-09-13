@@ -1,137 +1,66 @@
-<div align="center">
-  <h1 align="center">Papermark</h1>
-  <h3>The open-source DocSend alternative.</h3>
+# papermark-mimosa
 
-<a target="_blank" href="https://www.producthunt.com/posts/papermark-3?utm_source=badge-top-post-badge&amp;utm_medium=badge&amp;utm_souce=badge-papermark"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=411605&amp;theme=light&amp;period=daily" alt="Papermark - The open-source DocSend alternative | Product Hunt" style="width:250px;height:40px"></a>
+A fork of [Papermark](https://github.com/mfts/papermark), the open-source DocSend
+alternative, for **mimosa GmbH**'s internal document-sharing use — proposals, budgets,
+agreements sent to our own clients. This fork exists to meet AGPLv3 §13 (Remote Network
+Interaction) by construction: if we run a modified version of this software as a network
+service, the modified source is offered to users interacting with it remotely by simply
+being here, publicly, rather than served on request from inside the running app.
 
-</div>
+Upstream's own README is preserved at [`README.upstream.md`](README.upstream.md).
 
-<div align="center">
-  <a href="https://www.papermark.com">papermark.com</a>
-</div>
+## What this fork is for
 
-<br/>
+Papermark's `ee/` and `app/(ee)/` directories are under a separate Commercial License
+(see `LICENSE`, `ee/LICENSE.md`) — Data Rooms, SAML/SCIM, workflows, AI chat, billing.
+This fork keeps only what's licensed as AGPLv3 (the code outside those two directories)
+and everything that follows from that choice.
 
-<div align="center">
-  <a href="https://github.com/mfts/papermark/stargazers"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/mfts/papermark"></a>
-  <a href="https://twitter.com/papermarkio"><img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/papermarkio"></a>
-  <a href="https://github.com/mfts/papermark/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-AGPLv3-purple"></a>
-</div>
+**No commercially-licensed code is present in this repository.**
 
-<br/>
+## The plan (current status: scoped, not yet built)
 
-Papermark is the open-source document-sharing alternative to DocSend, featuring built-in analytics and custom domains.
+Full detail, cost estimates, and the reasoning behind each choice live in mimosa's own
+working notes (`REPORTS/papermark-test.md` in the `mimosa-gsc` repo — internal, not
+public). Summary:
 
-## Features
+### 1. Strip `ee/` and `app/(ee)/`
+Both directories are deleted entirely — no commercially-licensed file is present in this
+repo. 28 core files import small utilities from those directories (rate limiting, brand
+resolution, billing-pause checks); each import is either removed (if the feature it
+supports — data rooms, SAML/SCIM, workflows, AI chat, billing — is dropped) or the small
+utility is re-implemented directly in the surviving core code.
 
-- **Shareable Links:** Share your documents securely by sending a custom link.
-- **Custom Branding:** Add a custom domain and your own branding.
-- **Analytics:** Gain insights through document tracking and soon page-by-page analytics.
-- **Self-hosted, Open-source:** Host it yourself and customize it as needed.
+### 2. View tracking without Tinybird
+Tinybird (page-by-page view analytics) is a third-party hosted dependency we don't want.
+Replaced with our own Postgres: two models for view/duration and click events, a small
+ingest route per event type, and the ~16 read queries ported 1:1 (Tinybird's own SQL for
+this feature is already plain `SELECT`/`GROUP BY`/`SUM`/`COUNT DISTINCT` — no ClickHouse-
+specific function beyond one, itself unnecessary at this scale). Optionally: one aggregate
+event per document view forwarded to our own existing analytics pipeline.
 
-## Demo
+### 3. E-signature via self-hosted Documenso
+`lib/signing/` is host-agnostic (plain env vars for the API host/key) and defaults to
+Documenso's hosted SaaS — this fork points it at our **own self-hosted Documenso instance**
+instead (Documenso is itself a separate, AGPL, properly self-hostable project). No code
+change needed in this repo for that switch, only configuration.
 
-![Papermark Welcome GIF](.github/images/papermark-welcome.gif)
+### 4. Storage, email, login
+S3-compatible object storage (self-hosted, not a third-party bucket), Google OAuth via our
+own Workspace (no Hanko/passkey SaaS), and email via our own Workspace SMTP relay (no
+Resend account) — all templates kept, only the transport adapter changes.
 
-## Tech Stack
+### 5. Re-skin
+Typography, color and layout brought in line with mimosa's own design system — scoped
+separately, after the above is working.
 
-- [Next.js](https://nextjs.org/) – Framework
-- [TypeScript](https://www.typescriptlang.org/) – Language
-- [Tailwind](https://tailwindcss.com/) – CSS
-- [shadcn/ui](https://ui.shadcn.com) - UI Components
-- [Prisma](https://prisma.io) - ORM [![Made with Prisma](https://made-with.prisma.io/dark.svg)](https://prisma.io)
-- [PostgreSQL](https://www.postgresql.org/) - Database
-- [NextAuth.js](https://next-auth.js.org/) – Authentication
-- [Tinybird](https://tinybird.co) – Analytics
-- [Resend](https://resend.com) – Email
-- [Stripe](https://stripe.com) – Payments
-- [Vercel](https://vercel.com/) – Hosting
+## License
 
-## Getting Started
-
-### Prerequisites
-
-Here's what you need to run Papermark:
-
-- Node.js (version >= 18.17.0)
-- PostgreSQL Database
-- Blob storage (currently [AWS S3](https://aws.amazon.com/s3/) or [Vercel Blob](https://vercel.com/storage/blob))
-- [Resend](https://resend.com) (for sending emails)
-
-### 1. Clone the repository
-
-```shell
-git clone https://github.com/mfts/papermark.git
-cd papermark
-```
-
-### 2. Install npm dependencies
-
-```shell
-npm install
-```
-
-### 3. Copy the environment variables to `.env` and change the values
-
-```shell
-cp .env.example .env
-```
-
-### 4. Initialize the database
-
-```shell
-npm run dev:prisma
-```
-
-### 5. Run the dev server
-
-```shell
-npm run dev
-```
-
-### 6. Open the app in your browser
-
-Visit [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Tinybird Instructions
-
-To prepare the Tinybird database, follow these steps:
-
-0. We use `pipenv` to manage our Python dependencies. If you don't have it installed, you can install it using the following command:
-   ```sh
-   pkgx pipenv
-   ```
-1. Download the Tinybird CLI from [here](https://www.tinybird.co/docs/cli.html) and install it on your system.
-2. After authenticating with the Tinybird CLI, navigate to the `lib/tinybird` directory:
-   ```sh
-   cd lib/tinybird
-   ```
-3. Push the necessary data sources using the following command:
-   ```sh
-   tb push datasources/*
-   tb push endpoints/get_*
-   ```
-4. Don't forget to set the `TINYBIRD_TOKEN` with the appropriate rights in your `.env` file.
-
-#### Updating Tinybird
-
-```sh
-pipenv shell
-## start: pkgx-specific
-cd ..
-cd papermark
-## end: pkgx-specific
-pipenv update tinybird-cli
-```
-
-## Contributing
-
-Papermark is an open-source project, and we welcome contributions from the community.
-
-If you'd like to contribute, please fork the repository and make any changes you'd like. Pull requests are warmly welcome.
-
-### Our Contributors ✨
-
-<a href="https://github.com/mfts/papermark/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=mfts/papermark" />
-</a>
+- Everything in this repository, having had `ee/` and `app/(ee)/` removed, is licensed
+  under **AGPLv3** — see `LICENSE`.
+- This is a fork of a copyrighted work; the original copyright notices and the full AGPLv3
+  text are preserved in `LICENSE`.
+- This repository is maintained for mimosa GmbH's own internal use. It is public because
+  AGPLv3 §13 asks that a modified version's source be available to anyone interacting
+  with it over a network — publishing the fork here satisfies that plainly, rather than
+  building a separate "source available on request" mechanism into the running app.
