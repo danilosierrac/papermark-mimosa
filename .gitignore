@@ -51,6 +51,8 @@ next-env.d.ts
 # Internal scripts
 pages/api/scripts
 scripts/*
+# the retention job is part of the repo
+!scripts/cleanup-view-events.ts
 !scripts/generate-openapi.ts
 !scripts/mcp-smoke.mjs
 !scripts/check-tool-contracts.sh
