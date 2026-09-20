@@ -30,7 +30,6 @@ import { mutate } from "swr";
 
 import { moveDocumentToFolder } from "@/lib/documents/move-documents";
 import { moveFolderToFolder } from "@/lib/documents/move-folder";
-import { DataroomFolderWithCount } from "@/lib/swr/use-dataroom";
 import { FolderWithCount, FolderWithCountAndPath } from "@/lib/swr/use-documents";
 import { DocumentWithLinksAndLinkCountAndViewCount } from "@/lib/types";
 import { useMediaQuery } from "@/lib/utils/use-media-query";
@@ -43,7 +42,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import UploadZone from "@/components/upload-zone";
 
-import { itemsMessage } from "../datarooms/folders/utils";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Portal } from "../ui/portal";
@@ -57,6 +55,18 @@ import { EmptyDocuments } from "./empty-document";
 import FolderCard from "./folder-card";
 import { MoveToFolderModal, TSelectedFolder } from "./move-folder-modal";
 
+
+
+function itemsMessage(documents: unknown[], folders: unknown[], verb: string) {
+  const parts: string[] = [];
+  if (documents.length) {
+    parts.push(`${documents.length} document${documents.length === 1 ? "" : "s"}`);
+  }
+  if (folders.length) {
+    parts.push(`${folders.length} folder${folders.length === 1 ? "" : "s"}`);
+  }
+  return `${verb} ${parts.join(" and ")}`;
+}
 
 export function DocumentsList({
   folders,
@@ -91,7 +101,7 @@ export function DocumentsList({
 
   //forFolder
   const [draggedFolder, setDraggedFolder] = useState<
-    FolderWithCount | DataroomFolderWithCount | null
+    FolderWithCount | null
   >(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isOverFolder, setIsOverFolder] = useState<boolean>(false);

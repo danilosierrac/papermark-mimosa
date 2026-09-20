@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { resolveBrandLogo } from "@/ee/features/branding/lib/brand-logo";
+import { resolveBrandLogo } from "@/lib/brand/brand-logo";
 import { Brand, CustomField, DataroomBrand, LinkType } from "@prisma/client";
 import { ArrowUpRightIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";

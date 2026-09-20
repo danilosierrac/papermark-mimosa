@@ -23,7 +23,6 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 import { getFolderColorClasses, getFolderIcon } from "@/lib/constants/folder-constants";
-import { DataroomFolderWithCount } from "@/lib/swr/use-dataroom";
 import { FolderWithCount, FolderWithCountAndPath } from "@/lib/swr/use-documents";
 import { getBreadcrumbPath, timeAgo } from "@/lib/utils";
 import {
@@ -41,15 +40,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { DownloadProgressModal } from "../datarooms/download-progress-modal";
-import { SetUnifiedPermissionsModal } from "../datarooms/groups/set-unified-permissions-modal";
-import { MoveToDataroomFolderModal } from "../datarooms/move-dataroom-folder-modal";
 import { EditFolderModal } from "../folders/edit-folder-modal";
-import { AddFolderToDataroomModal } from "./add-folder-to-dataroom-modal";
 import { MoveToFolderModal } from "./move-folder-modal";
 
 type FolderCardProps = {
-  folder: FolderWithCount | FolderWithCountAndPath | DataroomFolderWithCount;
+  folder: FolderWithCount | FolderWithCountAndPath;
   teamInfo: TeamContextType | null;
   isDataroom?: boolean;
   dataroomId?: string;
@@ -86,12 +81,7 @@ export default function FolderCard({
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Get hierarchical display name for dataroom folders
-  const displayName = useHierarchicalDisplayName(
-    folder.name,
-    isDataroom && "hierarchicalIndex" in folder
-      ? folder.hierarchicalIndex
-      : undefined,
-  );
+  const displayName = useHierarchicalDisplayName(folder.name, undefined);
 
   const folderPath =
     isDataroom && dataroomId
@@ -110,87 +100,6 @@ export default function FolderCard({
       });
     }
   }, [openFolder, addDataroomOpen]);
-
-  const handleCreateDataroom = (e: any, folderId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    toast.promise(
-      fetch(
-        `/api/teams/${teamInfo?.currentTeam?.id}/datarooms/create-from-folder`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            folderId: folderId,
-          }),
-        },
-      ).then(async (response) => {
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.message || "An error occurred while creating dataroom.",
-          );
-        }
-        return response.json();
-      }),
-      {
-        loading: "Creating dataroom...",
-        success: (data) => {
-          toast.dismiss();
-          setMenuOpen(false);
-          mutate(`/api/teams/${teamInfo?.currentTeam?.id}/datarooms`);
-          mutate(`/api/teams/${teamInfo?.currentTeam?.id}/datarooms?simple=true`);
-          toast.success(`Successfully created!`, {
-            description: `${folder.name} → ${data.name}`,
-            action: {
-              label: "Open Dataroom",
-              onClick: () => router.push(`/datarooms/${data.id}/documents`),
-            },
-            duration: 10000,
-          });
-          return null;
-        },
-        error: (error) => {
-          return error.message;
-        },
-      },
-    );
-  };
-
-  const handleDownloadFolder = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMenuOpen(false);
-
-    // The job is created before the modal opens, so an empty folder surfaces
-    // as a toast instead of a modal that immediately shows an error.
-    toast.promise(
-      fetch(
-        `/api/teams/${teamInfo?.currentTeam?.id}/datarooms/${dataroomId}/download/bulk`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ folderId: folder.id }),
-        },
-      ).then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to start download");
-        }
-        setDownloadJobId(data.jobId);
-      }),
-      {
-        loading: "Preparing download...",
-        success: "Download started.",
-        error: (err) => err.message || "Failed to download folder. Try again.",
-      },
-    );
-  };
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (isDragging || menuOpen) {
@@ -365,44 +274,7 @@ export default function FolderCard({
                 <FolderInputIcon className="mr-2 h-4 w-4" />
                 Move to Folder
               </DropdownMenuItem>
-              {!isDataroom ? (
-                <DropdownMenuItem
-                  onClick={(e) => handleCreateDataroom(e, folder.id)}
-                >
-                  <PackagePlusIcon className="mr-2 h-4 w-4" />
-                  Create dataroom from folder
-                </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setAddDataroomOpen(true);
-                }}
-              >
-                <BetweenHorizontalStartIcon className="mr-2 h-4 w-4" />
-                {isDataroom
-                  ? "Copy folder to other dataroom"
-                  : "Add folder to dataroom"}
-              </DropdownMenuItem>
-              {isDataroom && dataroomId ? (
-                <>
-                  <DropdownMenuItem onClick={handleDownloadFolder}>
-                    <DownloadIcon className="mr-2 h-4 w-4" />
-                    Download folder
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setGroupPermissionOpen(true);
-                    }}
-                  >
-                    <FileSlidersIcon className="mr-2 h-4 w-4" />
-                    Set Group Permissions
-                  </DropdownMenuItem>
-                </>
-              ) : null}
+              
               <DropdownMenuItem
                 onClick={(e) => {
                   e.preventDefault();
@@ -465,15 +337,6 @@ export default function FolderCard({
           dataroomId={dataroomId}
         />
       ) : null}
-      {addDataroomOpen ? (
-        <AddFolderToDataroomModal
-          open={addDataroomOpen}
-          setOpen={setAddDataroomOpen}
-          folderId={folder.id}
-          folderName={folder.name}
-          dataroomId={dataroomId}
-        />
-      ) : null}
       {moveFolderOpen && !isDataroom ? (
         <MoveToFolderModal
           open={moveFolderOpen}
@@ -484,41 +347,7 @@ export default function FolderCard({
           folderParentId={folder.parentId!}
         />
       ) : null}
-      {moveFolderOpen && isDataroom && dataroomId ? (
-        <MoveToDataroomFolderModal
-          open={moveFolderOpen}
-          setOpen={setMoveFolderOpen}
-          dataroomId={dataroomId}
-          documentIds={[]}
-          folderIds={[folder.id]}
-          folderParentId={folder.parentId!}
-          itemName={folder.name}
-        />
-      ) : null}
-      {groupPermissionOpen && isDataroom && dataroomId ? (
-        <SetUnifiedPermissionsModal
-          open={groupPermissionOpen}
-          setOpen={setGroupPermissionOpen}
-          dataroomId={dataroomId}
-          uploadedFiles={[
-            {
-              dataroomFolderId: folder.id,
-              fileName: folder.name,
-              itemType: "folder",
-            },
-          ]}
-        />
-      ) : null}
-      {downloadJobId && dataroomId && teamInfo?.currentTeam?.id ? (
-        <DownloadProgressModal
-          isOpen
-          onClose={() => setDownloadJobId(null)}
-          jobId={downloadJobId}
-          folderName={folder.name}
-          teamId={teamInfo.currentTeam.id}
-          dataroomId={dataroomId}
-        />
-      ) : null}
+      
     </>
   );
 }

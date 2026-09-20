@@ -1,4 +1,3 @@
-import { isTeamPausedById } from "@/ee/features/billing/cancellation/lib/is-team-paused";
 
 import prisma from "@/lib/prisma";
 import { log } from "@/lib/utils";
@@ -30,11 +29,6 @@ export async function sendDocumentCreatedWebhook({
     }
 
     // check if team is paused
-    const teamIsPaused = await isTeamPausedById(teamId);
-    if (teamIsPaused) {
-      // team is paused, so we don't send webhooks
-      return;
-    }
 
     // Get webhooks for team
     const webhooks = await prisma.webhook.findMany({

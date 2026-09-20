@@ -3,13 +3,11 @@
 import Link from "next/link";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { ChevronRight, CrownIcon, type LucideIcon } from "lucide-react";
 
 import { useAnalytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
-import { Shimmer } from "@/components/ai-elements/shimmer";
 import {
   Collapsible,
   CollapsibleContent,
@@ -27,7 +25,6 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
-import { UpgradePlanModal } from "../billing/upgrade-plan-modal";
 
 export interface NavItem {
   title: string;
@@ -36,7 +33,6 @@ export interface NavItem {
   current?: boolean;
   isActive?: boolean;
   disabled?: boolean;
-  plan?: PlanEnum;
   trigger?: string;
   highlightItem?: string[];
   items?: {
@@ -78,23 +74,15 @@ export function NavMain({ items }: { items: NavItem[] }) {
                 )}
               >
                 {item.disabled ? (
-                  <UpgradePlanModal
-                    key={item.title}
-                    clickedPlan={item.plan as PlanEnum}
-                    trigger={item.trigger}
-                    highlightItem={item.highlightItem}
-                  >
-                    <div className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm text-muted-foreground outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0">
+                                      <div className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm text-muted-foreground outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0">
                       <item.icon />
                       <span
                         className="flex flex-row items-center gap-2 group-data-[collapsible=icon]:hidden"
-                        id={item.plan}
                       >
                         {item.title}
                         <CrownIcon className="!size-4" />
                       </span>
                     </div>
-                  </UpgradePlanModal>
                 ) : (
                   <Link
                     href={item.url}
@@ -107,19 +95,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                           "text-orange-500 dark:text-orange-400",
                       )}
                     />
-                    {item.title === "2025 Recap" ? (
-                      <Shimmer
-                        as="span"
-                        className="[--background:theme(colors.yellow.300)] [--muted-foreground:theme(colors.orange.500)] dark:[--background:theme(colors.yellow.200)] dark:[--muted-foreground:theme(colors.orange.400)]"
-                        duration={0.5}
-                        spread={3}
-                        hoverOnly
-                      >
-                        {item.title}
-                      </Shimmer>
-                    ) : (
-                      <span>{item.title}</span>
-                    )}
+                    <span>{item.title}</span>
                   </Link>
                 )}
               </SidebarMenuButton>

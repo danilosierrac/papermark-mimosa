@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 
 import { useEffect, useRef, useState } from "react";
 
-import { ConfidentialViewOverlay } from "@/ee/features/permissions/components/confidential-view/confidential-view-overlay";
 import {
   ReactZoomPanPinchRef,
   TransformComponent,
@@ -574,7 +573,6 @@ export default function ImageViewer({
         ) : null}
 
         {screenshotProtectionEnabled ? <ScreenProtector /> : null}
-        {confidentialViewEnabled ? <ConfidentialViewOverlay /> : null}
         {showPoweredByBanner ? <PoweredBy linkId={linkId} /> : null}
       </div>
       <AwayPoster

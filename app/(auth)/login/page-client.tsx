@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { useState } from "react";
 
-import { SSOLogin } from "@/ee/features/security/sso";
 import { signInWithPasskey } from "@teamhanko/passkeys-next-auth-provider/client";
 import { AlertCircle } from "lucide-react";
 import { signIn } from "next-auth/react";
@@ -225,7 +224,6 @@ export default function Login() {
               </Button>
             </div>
             <div className="relative">
-              <SSOLogin autoExpand={isSSORequired} />
             </div>
           </div>
           <p className="mt-10 w-full max-w-md px-4 text-xs text-muted-foreground sm:px-12">

@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import {
   ColumnDef,
   SortingState,
@@ -51,7 +50,6 @@ import { BadgeTooltip } from "@/components/ui/tooltip";
 import { DataTablePagination } from "@/components/visitors/data-table-pagination";
 import { VisitorAvatar } from "@/components/visitors/visitor-avatar";
 
-import { UpgradeButton } from "../ui/upgrade-button";
 
 interface View {
   id: string;
@@ -340,24 +338,12 @@ export default function ViewsTable({
   };
 
   const UpgradeOrExportButton = () => {
-    if (isFree && !isTrial) {
-      return (
-        <UpgradeButton
-          text="Export"
-          clickedPlan={PlanEnum.Pro}
-          trigger="dashboard_views_export"
-          variant="outline"
-          size="sm"
-        />
-      );
-    } else {
-      return (
-        <Button variant="outline" size="sm" onClick={handleExport}>
-          <Download className="!size-4" />
-          Export
-        </Button>
-      );
-    }
+        return (
+      <Button variant="outline" size="sm" onClick={handleExport}>
+        <Download className="!size-4" />
+        Export
+      </Button>
+    );
   };
 
   return (

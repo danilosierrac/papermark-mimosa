@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { PlanEnum } from "@/ee/stripe/constants";
 import {
   ChevronDownIcon,
   FileUpIcon,
@@ -18,7 +17,6 @@ import { usePlan } from "@/lib/swr/use-billing";
 import useLimits from "@/lib/swr/use-limits";
 import { cn } from "@/lib/utils";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { AddDocumentModal } from "@/components/documents/add-document-modal";
 import { AddFolderModal } from "@/components/folders/add-folder-modal";
 import { ImportFoldersModal } from "@/components/folders/import-folders-modal";
@@ -409,18 +407,6 @@ export function AddDocumentDropdown({
         dataroomId={dataroomId}
       />
 
-      <UpgradePlanModal
-        clickedPlan={PlanEnum.Pro}
-        trigger={upgradeModal.trigger}
-        highlightItem={upgradeModal.highlight}
-        open={upgradeModal.open}
-        setOpen={(open) =>
-          setUpgradeModal((prev) => ({
-            ...prev,
-            open: typeof open === "function" ? open(prev.open) : open,
-          }))
-        }
-      />
     </>
   );
 }

@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 
 import { TeamContextType } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import {
   BetweenHorizontalStartIcon,
   ChevronRight,
@@ -22,16 +21,12 @@ import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-import useDataroomsSimple from "@/lib/swr/use-datarooms-simple";
 import useLimits from "@/lib/swr/use-limits";
 import { DocumentWithLinksAndLinkCountAndViewCount } from "@/lib/types";
 import { cn, getBreadcrumbPath, nFormatter, timeAgo } from "@/lib/utils";
 import { fileIcon } from "@/lib/utils/get-file-icon";
 import { useCopyToClipboard } from "@/lib/utils/use-copy-to-clipboard";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
-import { DataroomTrialModal } from "@/components/datarooms/dataroom-trial-modal";
-import { AddToDataroomModal } from "@/components/documents/add-document-to-dataroom-modal";
 import { DocumentPreviewModal } from "@/components/documents/document-preview-modal";
 import { EditDocumentNameModal } from "@/components/documents/edit-document-name-modal";
 import { MoveToFolderModal } from "@/components/documents/move-folder-modal";
@@ -79,7 +74,6 @@ export default function DocumentsCard({
   const [planModalOpen, setPlanModalOpen] = useState<boolean>(false);
   const [previewOpen, setPreviewOpen] = useState<boolean>(false);
 
-  const { datarooms } = useDataroomsSimple();
 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const { canAddDocuments } = useLimits();
@@ -459,12 +453,6 @@ export default function DocumentsCard({
                 <Layers2Icon className="mr-2 h-4 w-4" />
                 Duplicate document
               </DropdownMenuItem> */}
-              {datarooms && datarooms.length !== 0 && (
-                <DropdownMenuItem onClick={() => setAddDataroomOpen(true)}>
-                  <BetweenHorizontalStartIcon className="mr-2 h-4 w-4" />
-                  Add to dataroom
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem onClick={handleHideDocument}>
                 <EyeOffIcon className="mr-2 h-4 w-4" />
                 Hide from All Documents
@@ -505,29 +493,7 @@ export default function DocumentsCard({
         />
       ) : null}
 
-      {addDataroomOpen ? (
-        <AddToDataroomModal
-          open={addDataroomOpen}
-          setOpen={setAddDataroomOpen}
-          documentId={prismaDocument.id}
-          documentName={prismaDocument.name}
-        />
-      ) : null}
 
-      {trialModalOpen ? (
-        <DataroomTrialModal
-          openModal={trialModalOpen}
-          setOpenModal={setTrialModalOpen}
-        />
-      ) : null}
-      {planModalOpen ? (
-        <UpgradePlanModal
-          clickedPlan={PlanEnum.DataRooms}
-          trigger="datarooms"
-          open={planModalOpen}
-          setOpen={setPlanModalOpen}
-        />
-      ) : null}
 
       <DocumentPreviewModal
         documentId={prismaDocument.id}

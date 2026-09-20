@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
@@ -31,7 +30,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { UpgradePlanModal } from "../billing/upgrade-plan-modal";
 import { FolderIconColorPicker } from "./folder-icon-picker";
 
 export function AddFolderModal({
@@ -175,35 +173,6 @@ export function AddFolderModal({
     }
   };
 
-  // If the team is on a free plan, show the upgrade modal regardless of how
-  // the consumer opens the dialog (trigger child or controlled props).
-  if (!isCreationAllowed) {
-    if (children) {
-      return (
-        <UpgradePlanModal
-          clickedPlan={PlanEnum.Pro}
-          trigger={"add_folder_button"}
-          highlightItem={["folder", "folder-sharing", "datarooms"]}
-        >
-          {children}
-        </UpgradePlanModal>
-      );
-    }
-    // Controlled/programmatic usage: surface the upgrade modal in place of the
-    // create-folder dialog so callers can't bypass the gate by passing `open`.
-    return (
-      <UpgradePlanModal
-        clickedPlan={PlanEnum.Pro}
-        trigger={"add_folder_button"}
-        highlightItem={["folder", "folder-sharing", "datarooms"]}
-        open={open}
-        setOpen={(next) => {
-          const value = typeof next === "function" ? next(open) : next;
-          setOpen(value);
-        }}
-      />
-    );
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

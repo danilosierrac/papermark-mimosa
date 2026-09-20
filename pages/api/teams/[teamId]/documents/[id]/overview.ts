@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { getLimits } from "@/ee/limits/server";
+import { getLimits } from "@/lib/limits";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth/next";

@@ -3,13 +3,10 @@ import { useRouter } from "next/router";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import { useDataroom } from "@/lib/swr/use-dataroom";
-import { useDataroomDocumentOverview } from "@/lib/swr/use-dataroom-document";
 import { useDocument } from "@/lib/swr/use-document";
 import { useFolderWithParents } from "@/lib/swr/use-folders";
 import useViewer from "@/lib/swr/use-viewer";
 
-import { BreadcrumbComponent as DataroomBreadcrumb } from "@/components/datarooms/dataroom-breadcrumb";
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -144,101 +141,6 @@ export const TruncatedBreadcrumbLink = ({
     return <BadgeTooltip content={text || ""}>{link}</BadgeTooltip>;
   }
   return link;
-};
-
-const SingleDataroomBreadcrumb = ({ path }: { path: string }) => {
-  const { dataroom } = useDataroom();
-
-  const title = useMemo(() => {
-    switch (path) {
-      case "/datarooms/[id]/documents":
-        return "Documents";
-      case "/datarooms/[id]/settings":
-        return "Settings";
-      case "/datarooms/[id]/branding":
-        return "Branding";
-      case "/datarooms/[id]/permissions":
-      case "/datarooms/[id]/groups":
-      case "/datarooms/[id]/groups/[groupId]":
-      case "/datarooms/[id]/groups/[groupId]/permissions":
-      case "/datarooms/[id]/groups/[groupId]/members":
-      case "/datarooms/[id]/groups/[groupId]/links":
-        return "Permissions";
-      case "/datarooms/[id]/participants":
-        return "Participants";
-      case "/datarooms/[id]/analytics":
-        return "Analytics";
-      case "/datarooms/[id]/conversations/faqs":
-        return "FAQ";
-      case "/datarooms/[id]/conversations":
-      case "/datarooms/[id]/conversations/[conversationId]":
-        return "Conversations";
-      case "/datarooms/[id]/settings/notifications":
-        return "Notifications";
-      case "/datarooms/[id]/settings/file-permissions":
-        return "File Permissions";
-      default:
-        return dataroom?.name || "Loading...";
-    }
-  }, [path, dataroom]);
-
-  return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link href="/datarooms">Datarooms</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <TruncatedBreadcrumbLink
-            href={`/datarooms/${dataroom?.id}/documents`}
-            text={dataroom?.name}
-          />
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>{title}</BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
-};
-
-const SingleDataroomDocumentBreadcrumb = () => {
-  const { dataroom, document } = useDataroomDocumentOverview();
-
-  return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link href="/datarooms">Datarooms</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <TruncatedBreadcrumbLink
-            href={`/datarooms/${dataroom?.id}/documents`}
-            text={dataroom?.name}
-          />
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link href={`/datarooms/${dataroom?.id}/documents`}>Documents</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage className="max-w-[200px] truncate">
-            {document?.name || "Loading..."}
-          </BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
 };
 
 const SettingsBreadcrumb = () => {
@@ -563,38 +465,10 @@ export const AppBreadcrumb = () => {
       return <SingleDocumentBreadcrumb />;
     }
 
-    // Dataroom document routes
-    if (path === "/datarooms/[id]/documents" && id) {
-      return <DataroomBreadcrumb />;
-    }
 
-    // Dataroom document routes
-    if (path === "/datarooms/[id]/documents/[...name]" && id) {
-      return <DataroomBreadcrumb />;
-    }
 
-    // Single dataroom document route
-    if (path === "/datarooms/[id]/document/[documentId]" && id) {
-      return <SingleDataroomDocumentBreadcrumb />;
-    }
 
-    // Single dataroom route
-    if (path.startsWith("/datarooms/[id]") && id) {
-      return <SingleDataroomBreadcrumb path={path} />;
-    }
 
-    // Root datarooms route
-    if (path === "/datarooms") {
-      return (
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbPage>Datarooms</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      );
-    }
 
     // Root visitors route
     if (path === "/visitors") {

@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-import { DataroomFolderWithCount } from "@/lib/swr/use-dataroom";
 import { FolderWithCount } from "@/lib/swr/use-documents";
 
 import { DeleteFolderModal } from "../delete-folder-modal";
@@ -15,7 +14,7 @@ export function useDeleteFolderModal(
 ) {
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
   const [folderToDelete, setFolderToDelete] = useState<
-    FolderWithCount | DataroomFolderWithCount | null
+    FolderWithCount | null
   >(null);
   const parentFolderPath = folderToDelete?.path.substring(
     0,

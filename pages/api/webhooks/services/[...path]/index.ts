@@ -1,14 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { isTeamPausedById } from "@/ee/features/billing/cancellation/lib/is-team-paused";
-import { resolveDefaultBrandId } from "@/ee/features/branding/lib/resolve-base-brand";
+import { resolveDefaultBrandId } from "@/lib/brand/resolve-brand";
 import { LinkPreset } from "@prisma/client";
 import { put } from "@vercel/blob";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 
 import { hashToken } from "@/lib/api/auth/token";
-import { onDataroomDocumentsAttached } from "@/lib/dataroom/apply-default-permissions";
 import {
   createDocument,
   createNewDocumentVersion,
@@ -77,7 +75,6 @@ const BaseSchema = z.object({
     "link.create",
     "link.update",
     "links.get",
-    "dataroom.create",
   ]),
 });
 
@@ -117,30 +114,12 @@ const LinksGetSchema = BaseSchema.extend({
   resourceType: z.literal("links.get"),
 });
 
-// Schema for dataroom folder structure
-const DataroomFolderSchema: z.ZodType<any> = z.lazy(() =>
-  z.object({
-    name: z.string(),
-    subfolders: z.array(DataroomFolderSchema).optional(),
-  }),
-);
-
-const DataroomCreateSchema = BaseSchema.extend({
-  resourceType: z.literal("dataroom.create"),
-  name: z.string(),
-  description: z.string().optional(),
-  folders: z.array(DataroomFolderSchema).optional(), // Create folders with hierarchy
-  createLink: z.boolean().optional().default(false),
-  link: LinkSchema.optional(),
-});
-
 const RequestBodySchema = z.discriminatedUnion("resourceType", [
   DocumentCreateSchema,
   DocumentUpdateSchema,
   LinkCreateSchema,
   LinkUpdateSchema,
   LinksGetSchema,
-  DataroomCreateSchema,
 ]);
 
 export default async function incomingWebhookHandler(
@@ -279,13 +258,6 @@ export default async function incomingWebhookHandler(
       );
     } else if (validatedData.resourceType === "links.get") {
       return await handleLinksGet(incomingWebhook.teamId, res);
-    } else if (validatedData.resourceType === "dataroom.create") {
-      return await handleDataroomCreate(
-        validatedData,
-        incomingWebhook.teamId,
-        token,
-        res,
-      );
     }
 
     // This shouldn't be reached due to the validation schema, but just in case
@@ -370,13 +342,6 @@ async function handleDocumentCreate(
   } = data;
 
   // Check if team is paused
-  const teamIsPaused = await isTeamPausedById(teamId);
-  if (teamIsPaused) {
-    return res.status(403).json({
-      error:
-        "Team is currently paused. New document uploads are not available.",
-    });
-  }
 
   // Check if the content type is supported
   const supportedContentType = getSupportedContentType(contentType);
@@ -701,16 +666,6 @@ async function handleDocumentCreate(
       },
     });
 
-    await onDataroomDocumentsAttached({
-      dataroomId,
-      dataroomDocuments: [
-        {
-          id: newDataroomDocument.id,
-          folderId: newDataroomDocument.folderId,
-        },
-      ],
-      schedule: waitUntil,
-    });
   }
 
   return res.status(200).json({
@@ -877,12 +832,6 @@ async function handleLinkCreate(
   const { targetId, linkType, link } = data;
 
   // Check if team is paused
-  const teamIsPaused = await isTeamPausedById(teamId);
-  if (teamIsPaused) {
-    return res.status(403).json({
-      error: "Team is currently paused. New link creation is not available.",
-    });
-  }
 
   // Validate target exists and belongs to the team
   if (linkType === "DOCUMENT_LINK") {
@@ -1093,12 +1042,6 @@ async function handleLinkUpdate(
   const { linkId, link } = data;
 
   // Check if team is paused
-  const teamIsPaused = await isTeamPausedById(teamId);
-  if (teamIsPaused) {
-    return res.status(403).json({
-      error: "Team is currently paused. Link updates are not available.",
-    });
-  }
 
   // Validate link exists and belongs to the team
   const existingLink = await prisma.link.findUnique({
@@ -1356,242 +1299,3 @@ async function handleLinkUpdate(
   }
 }
 
-/**
- * Helper function to create dataroom folders recursively
- */
-async function createDataroomFoldersRecursive(
-  dataroomId: string,
-  folders: Array<{ name: string; subfolders?: any[] }>,
-  parentPath: string = "",
-  parentId: string | null = null,
-): Promise<void> {
-  for (const folder of folders) {
-    const folderPath = parentPath + "/" + safeSlugify(folder.name);
-
-    // Create the folder
-    const createdFolder = await prisma.dataroomFolder.create({
-      data: {
-        name: folder.name,
-        path: folderPath,
-        parentId: parentId,
-        dataroomId: dataroomId,
-      },
-    });
-
-    // If the folder has subfolders, create them recursively
-    if (folder.subfolders && folder.subfolders.length > 0) {
-      await createDataroomFoldersRecursive(
-        dataroomId,
-        folder.subfolders,
-        folderPath,
-        createdFolder.id,
-      );
-    }
-  }
-}
-
-/**
- * Handle dataroom.create resource type
- */
-async function handleDataroomCreate(
-  data: z.infer<typeof DataroomCreateSchema>,
-  teamId: string,
-  token: string,
-  res: NextApiResponse,
-) {
-  const { name, description, createLink, link, folders } = data;
-
-  // Check if team is paused
-  const teamIsPaused = await isTeamPausedById(teamId);
-  if (teamIsPaused) {
-    return res.status(403).json({
-      error:
-        "Team is currently paused. New dataroom creation is not available.",
-    });
-  }
-
-  // If custom domain and slug are provided for link, validate them
-  let domainId = null;
-  if (createLink && link?.domain && link?.slug) {
-    // Check if domain exists
-    const domain = await prisma.domain.findUnique({
-      where: {
-        slug: link.domain,
-        teamId: teamId,
-      },
-    });
-
-    if (!domain) {
-      return res
-        .status(400)
-        .json({ error: "Domain not found or not associated with this team" });
-    }
-
-    domainId = domain.id;
-
-    // Check if the slug is already in use with this domain
-    const existingLink = await prisma.link.findUnique({
-      where: {
-        domainSlug_slug: {
-          slug: link.slug,
-          domainSlug: link.domain,
-        },
-      },
-    });
-
-    if (existingLink) {
-      return res
-        .status(400)
-        .json({ error: "The link with this domain and slug already exists" });
-    }
-  }
-
-  // If preset is provided, validate it
-  let preset: LinkPreset | null = null;
-  let metaImage: string | null = null;
-  let metaFavicon: string | null = null;
-  if (createLink && link?.presetId) {
-    preset = await prisma.linkPreset.findUnique({
-      where: { pId: link.presetId, teamId: teamId },
-    });
-
-    if (!preset) {
-      return res.status(400).json({
-        error: "Link preset not found or not associated with this team",
-      });
-    }
-
-    // Handle image files for custom meta tag (if enabled)
-    if (preset.enableCustomMetaTag) {
-      // Process meta image if present
-      if (preset.metaImage && isDataUrl(preset.metaImage)) {
-        const { buffer, mimeType, filename } = convertDataUrlToBuffer(
-          preset.metaImage,
-        );
-        const blob = await put(filename, buffer, {
-          access: "public",
-          addRandomSuffix: true,
-        });
-        metaImage = blob.url;
-      }
-
-      // Process favicon if present
-      if (preset.metaFavicon && isDataUrl(preset.metaFavicon)) {
-        const { buffer, mimeType, filename } = convertDataUrlToBuffer(
-          preset.metaFavicon,
-        );
-        const blob = await put(filename, buffer, {
-          access: "public",
-          addRandomSuffix: true,
-        });
-        metaFavicon = blob.url;
-      }
-    }
-  }
-
-  // Create the dataroom
-  try {
-    // Generate unique public ID for the dataroom
-    const pId = newId("dataroom");
-
-    const defaultBrandId = await resolveDefaultBrandId(teamId);
-
-    let createData: any = {
-      name,
-      description,
-      teamId,
-      pId,
-      brandId: defaultBrandId,
-    };
-
-    if (createLink && link) {
-      const isGroupAudience = link.audienceType === "GROUP";
-      const hashedPassword = link.password
-        ? await generateEncrpytedPassword(link.password)
-        : preset?.password
-          ? await generateEncrpytedPassword(preset.password)
-          : null;
-      const expiresAtDate = link.expiresAt
-        ? new Date(link.expiresAt)
-        : preset?.expiresAt
-          ? new Date(preset?.expiresAt)
-          : null;
-
-      createData.links = {
-        create: {
-          name: link.name,
-          teamId,
-          linkType: "DATAROOM_LINK",
-          domainId: domainId,
-          domainSlug: link.domain || null,
-          slug: link.slug || null,
-          password: hashedPassword,
-          expiresAt: expiresAtDate,
-          emailProtected:
-            link.emailProtected ?? preset?.emailProtected ?? false,
-          emailAuthenticated:
-            link.emailAuthenticated ?? preset?.emailAuthenticated ?? false,
-          allowDownload: link.allowDownload ?? preset?.allowDownload,
-          enableNotification:
-            link.enableNotification ?? preset?.enableNotification ?? false,
-          enableFeedback: link.enableFeedback,
-          enableScreenshotProtection: link.enableScreenshotProtection,
-          enableConfidentialView:
-            link.enableConfidentialView ??
-            preset?.enableConfidentialView ??
-            false,
-          showBanner: link.showBanner ?? preset?.showBanner ?? false,
-          audienceType: link.audienceType,
-          groupId: isGroupAudience ? link.groupId : null,
-          allowList: link.allowList || preset?.allowList,
-          denyList: link.denyList || preset?.denyList,
-          ...(preset?.enableCustomMetaTag && {
-            enableCustomMetatag: preset?.enableCustomMetaTag,
-            metaTitle: preset?.metaTitle,
-            metaDescription: preset?.metaDescription,
-            metaImage: metaImage,
-            metaFavicon: metaFavicon,
-          }),
-        },
-      };
-    }
-
-    const dataroom = await prisma.dataroom.create({
-      data: createData,
-      include: {
-        links: createLink, // Only include links if we're creating one
-      },
-    });
-
-    // Create folders if provided
-    if (folders && folders.length > 0) {
-      await createDataroomFoldersRecursive(dataroom.id, folders);
-    }
-
-    if (createLink) {
-      waitUntil(
-        sendLinkCreatedWebhook({
-          teamId,
-          data: {
-            dataroom_id: dataroom.id,
-            link_id: dataroom.links?.[0]?.id,
-          },
-        }),
-      );
-    }
-
-    return res.status(200).json({
-      message: "Dataroom created successfully",
-      dataroomId: dataroom.id,
-      linkId: createLink ? dataroom.links?.[0]?.id : undefined,
-      linkUrl: createLink
-        ? dataroom.links?.[0]?.domainSlug && dataroom.links?.[0]?.slug
-          ? `https://${dataroom.links?.[0]?.domainSlug}/${dataroom.links?.[0]?.slug}`
-          : `${process.env.NEXT_PUBLIC_MARKETING_URL}/view/${dataroom.links?.[0]?.id}`
-        : undefined,
-    });
-  } catch (error) {
-    console.error("Dataroom creation error:", error);
-    return res.status(500).json({ error: "Failed to create dataroom" });
-  }
-}

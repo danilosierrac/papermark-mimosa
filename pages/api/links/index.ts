@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { isTeamPausedById } from "@/ee/features/billing/cancellation/lib/is-team-paused";
-import { resolveOwnedBrandId } from "@/ee/features/branding/lib/resolve-base-brand";
+import { resolveOwnedBrandId } from "@/lib/brand/resolve-brand";
 import { LinkAudienceType, Tag } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { getServerSession } from "next-auth/next";
@@ -127,13 +126,6 @@ export default async function handler(
       }
 
       // Check if team is paused
-      const teamIsPaused = await isTeamPausedById(teamId);
-      if (teamIsPaused) {
-        return res.status(403).json({
-          error:
-            "Team is currently paused. New link creation is not available.",
-        });
-      }
 
       if (!targetId) {
         return res.status(400).json({

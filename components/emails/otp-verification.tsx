@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { ResolvedBrandLogo } from "@/ee/features/branding/lib/brand-logo";
+import type { ResolvedBrandLogo } from "@/lib/brand/brand-logo";
 import {
   Body,
   Container,

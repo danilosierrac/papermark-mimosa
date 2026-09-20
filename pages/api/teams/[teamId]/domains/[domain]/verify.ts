@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { checkRateLimit, rateLimiters } from "@/ee/features/security";
+import { checkRateLimit, rateLimiters } from "@/lib/security/ratelimit";
 import { waitUntil } from "@vercel/functions";
 import { getServerSession } from "next-auth/next";
 

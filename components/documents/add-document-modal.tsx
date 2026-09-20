@@ -5,7 +5,6 @@ import { FormEvent, useEffect, useState } from "react";
 
 import { useTeam } from "@/context/team-context";
 import { useUploadProgress } from "@/context/upload-progress-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { DefaultPermissionStrategy } from "@prisma/client";
 import { parsePageId } from "notion-utils";
 import { toast } from "sonner";
@@ -22,14 +21,12 @@ import { putFile } from "@/lib/files/put-file";
 import { useDataroomPermissions } from "@/lib/hooks/use-dataroom-permissions";
 import { getNotionPageIdFromSlug } from "@/lib/notion/utils";
 import { usePlan } from "@/lib/swr/use-billing";
-import { useDataroom } from "@/lib/swr/use-dataroom";
 import useLimits from "@/lib/swr/use-limits";
 import {
   getSupportedContentType,
   isHtmlFile,
 } from "@/lib/utils/get-content-type";
 
-import { SetUnifiedPermissionsModal } from "@/components/datarooms/groups/set-unified-permissions-modal";
 import DocumentUpload from "@/components/document-upload";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +46,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { UpgradePlanModal } from "../billing/upgrade-plan-modal";
 
 interface DataroomDocument {
   id: string;
@@ -110,7 +106,13 @@ export function AddDocumentModal({
   const teamInfo = useTeam();
   const { canAddDocuments, limits } = useLimits();
   const { plan, isFree, isTrial, isPaused } = usePlan();
-  const { dataroom } = useDataroom();
+  // Data rooms are not part of this fork; permission strategies fall back to defaults.
+  const dataroom = undefined as
+    | {
+        defaultGroupPermissionStrategy?: DefaultPermissionStrategy | null;
+        defaultPermissionStrategy?: DefaultPermissionStrategy | null;
+      }
+    | undefined;
   const { uploadTriggers } = useUploadProgress();
   const teamId = teamInfo?.currentTeam?.id as string;
 
@@ -811,21 +813,11 @@ export function AddDocumentModal({
   if (!canAddDocuments && children) {
     if (newVersion) {
       return (
-        <UpgradePlanModal
-          clickedPlan={PlanEnum.Pro}
-          trigger={"limit_upload_document_version"}
-        >
-          {children}
-        </UpgradePlanModal>
+                  {children}
       );
     }
     return (
-      <UpgradePlanModal
-        clickedPlan={PlanEnum.Pro}
-        trigger={"limit_upload_documents"}
-      >
-        <Button>Upgrade to Add Documents</Button>
-      </UpgradePlanModal>
+              <Button>Upgrade to Add Documents</Button>
     );
   }
 
@@ -934,17 +926,12 @@ export function AddDocumentModal({
                             </button>{" "}
                             or{" "}
                             {isFree && !isTrial ? (
-                              <UpgradePlanModal
-                                clickedPlan={PlanEnum.Pro}
-                                trigger={"add_web_link_document"}
-                              >
-                                <button
+                                                              <button
                                   type="button"
                                   className="inline-flex items-center gap-1 underline-offset-4 transition-all hover:text-gray-800 hover:underline hover:dark:text-muted-foreground/80"
                                 >
                                   share link as a document
                                 </button>
-                              </UpgradePlanModal>
                             ) : (
                               <button
                                 type="button"
@@ -1080,19 +1067,6 @@ export function AddDocumentModal({
         </DialogContent>
       </Dialog>
 
-      {showGroupPermissions && dataroomId && (
-        <SetUnifiedPermissionsModal
-          open={showGroupPermissions}
-          setOpen={setShowGroupPermissions}
-          dataroomId={dataroomId}
-          uploadedFiles={uploadedFiles}
-          onComplete={() => {
-            setShowGroupPermissions(false);
-            setAddDocumentModalOpen?.(false);
-            setUploadedFiles([]);
-          }}
-        />
-      )}
     </>
   );
 }

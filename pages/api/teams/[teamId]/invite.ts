@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { getLimits } from "@/ee/limits/server";
+import { getLimits } from "@/lib/limits";
 import { getServerSession } from "next-auth";
 
 import { hashToken } from "@/lib/api/auth/token";
@@ -114,7 +114,7 @@ export default async function handle(
         userId,
       });
 
-      if (limits && limits.users !== null && teamUsers.length >= limits.users) {
+      if (typeof limits?.users === "number" && teamUsers.length >= limits.users) {
         res
           .status(403)
           .json("You have reached the limit of users in your team");

@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { validateEmail } from "@/lib/utils/validate-email";
 
-import PlanBadge from "../billing/plan-badge";
 import { Button } from "./button";
 import {
   Card,
@@ -127,7 +126,7 @@ export function Form({
       <Card className="bg-transparent">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            {title} {plan && <PlanBadge plan={plan} />}
+            {title} 
           </CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>

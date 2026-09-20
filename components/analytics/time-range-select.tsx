@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-import { PlanEnum } from "@/ee/stripe/constants";
 import { differenceInDays, format, startOfDay, subDays } from "date-fns";
 import { CalendarIcon, ChevronDown, CrownIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -8,7 +7,6 @@ import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -223,7 +221,7 @@ export function TimeRangeSelect<T extends TimeRange>({
                     </Button>
                   );
                 } else {
-                  return <UpgradeButton key={range.value} />;
+                  return ;
                 }
               })}
             </div>
@@ -247,12 +245,6 @@ const UpgradeButton = () => {
       >
         Custom Date <CrownIcon className="!size-4" />
       </Button>
-      <UpgradePlanModal
-        clickedPlan={PlanEnum.Pro}
-        trigger="dashboard_time_range_custom_select"
-        open={open}
-        setOpen={setOpen}
-      />
     </>
   );
 };

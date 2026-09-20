@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import {
   ColumnDef,
   SortingState,
@@ -44,7 +43,6 @@ import {
 import { TimestampTooltip } from "@/components/ui/timestamp-tooltip";
 import { DataTablePagination } from "@/components/visitors/data-table-pagination";
 
-import { UpgradeButton } from "../ui/upgrade-button";
 
 interface Link {
   id: string;
@@ -295,24 +293,12 @@ export default function LinksTable({
   };
 
   const UpgradeOrExportButton = () => {
-    if (isFree && !isTrial) {
-      return (
-        <UpgradeButton
-          text="Export"
-          clickedPlan={PlanEnum.Pro}
-          trigger="dashboard_links_export"
-          variant="outline"
-          size="sm"
-        />
-      );
-    } else {
-      return (
-        <Button variant="outline" size="sm" onClick={handleExport}>
-          <Download className="!size-4" />
-          Export
-        </Button>
-      );
-    }
+        return (
+      <Button variant="outline" size="sm" onClick={handleExport}>
+        <Download className="!size-4" />
+        Export
+      </Button>
+    );
   };
 
   return (

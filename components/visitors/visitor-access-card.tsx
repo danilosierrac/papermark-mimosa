@@ -13,7 +13,6 @@ import { buildLinkFormData } from "@/lib/links/build-link-form-data";
 import { LinkWithViews } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 
-import { DataroomLinkSheet } from "@/components/links/link-sheet/dataroom-link-sheet";
 import { DEFAULT_LINK_TYPE } from "@/components/links/link-sheet";
 
 import { VisitorStatusBadge } from "./visitor-status-badge";
@@ -179,17 +178,6 @@ export function VisitorAccessCard({ access }: { access: VisitorRecord }) {
           )}
       </div>
 
-      {editing ? (
-        <DataroomLinkSheet
-          isOpen
-          setIsOpen={(open: boolean) => {
-            if (!open) setEditing(null);
-          }}
-          linkType="DATAROOM_LINK"
-          currentLink={editing.link}
-          linkTargetId={editing.dataroomId}
-        />
-      ) : null}
     </>
   );
 }

@@ -8,7 +8,6 @@ import {
 } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { CircleHelpIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,7 +15,6 @@ import { usePlan } from "@/lib/swr/use-billing";
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
-import { UpgradeButton } from "@/components/ui/upgrade-button";
 import {
   Dialog,
   DialogContent,
@@ -324,26 +322,14 @@ function AddEditTokenModal({
             </div>
           ) : null}
 
-          {showUpgrade ? (
-            <UpgradeButton
-              text="Business"
-              customText="Upgrade to save API Key"
-              clickedPlan={PlanEnum.Business}
-              trigger="create_token"
-              highlightItem={["api"]}
-              className="w-full justify-center"
-              key="create-token"
-            />
-          ) : (
-            <Button
-              type="submit"
-              disabled={submitDisabled}
-              loading={isLoading}
-              className="w-full bg-gray-900 text-gray-50 hover:bg-gray-900/90"
-            >
-              {isEdit ? "Save changes" : "Create API key"}
-            </Button>
-          )}
+          <Button
+            type="submit"
+            disabled={submitDisabled}
+            loading={isLoading}
+            className="w-full bg-gray-900 text-gray-50 hover:bg-gray-900/90"
+          >
+            {isEdit ? "Save changes" : "Create API key"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

@@ -1,7 +1,3 @@
-import type {
-  convertFilesToPdfTask,
-  convertKeynoteToPdfTask,
-} from "@/ee/features/conversions/lib/trigger/convert-files";
 import { tasks } from "@trigger.dev/sdk";
 
 import { validateExternalDocumentUrl } from "@/lib/api/documents/validate-external-url";
@@ -141,56 +137,6 @@ export const processDocument = async ({
       versions: true,
     },
   });
-
-  // Trigger appropriate conversion tasks based on document type
-  // Check if it's a Keynote file (slides type with Keynote content type)
-  if (
-    type === "slides" &&
-    (contentType === "application/vnd.apple.keynote" ||
-      contentType === "application/x-iwork-keynote-sffkey")
-  ) {
-    await tasks.trigger<typeof convertKeynoteToPdfTask>(
-      "convert-keynote-to-pdf",
-      {
-        documentId: document.id,
-        documentVersionId: document.versions[0].id,
-        teamId,
-      },
-      {
-        idempotencyKey: `${teamId}-${document.versions[0].id}-keynote`,
-        tags: [
-          `team_${teamId}`,
-          `document_${document.id}`,
-          `version:${document.versions[0].id}`,
-        ],
-        queue: conversionQueueName(teamPlan),
-        concurrencyKey: teamId,
-      },
-    );
-  } else if (
-    (type === "docs" || type === "slides") &&
-    !isDownloadOnlyByExtension &&
-    !isMarkdown
-  ) {
-    await tasks.trigger<typeof convertFilesToPdfTask>(
-      "convert-files-to-pdf",
-      {
-        documentId: document.id,
-        documentVersionId: document.versions[0].id,
-        teamId,
-      },
-      {
-        idempotencyKey: `${teamId}-${document.versions[0].id}-docs`,
-        tags: [
-          `team_${teamId}`,
-          `document_${document.id}`,
-          `version:${document.versions[0].id}`,
-        ],
-        queue: conversionQueueName(teamPlan),
-        concurrencyKey: teamId,
-      },
-    );
-  }
 
   const videoMode = videoProcessingMode({ type, contentType });
   if (videoMode) {
