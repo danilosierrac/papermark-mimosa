@@ -561,38 +561,32 @@ export default function LinksTable({
   };
 
   const AddLinkButton = () => {
-    if (!canAddLinks) {
-      return (
-                  <Button>Upgrade to Create Link</Button>
-      );
-    } else {
-      return (
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setIsLinkSheetVisible(true)}>
-            Create link to share
-          </Button>
-          {targetId ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="More link actions"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={openBulkImport}>
-                  <FileSpreadsheetIcon className="mr-2 h-4 w-4" />
-                  Bulk import from CSV
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-        </div>
-      );
-    }
+    return (
+      <div className="flex items-center gap-2">
+        <Button onClick={() => setIsLinkSheetVisible(true)}>
+          Create link to share
+        </Button>
+        {targetId ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="More link actions"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={openBulkImport}>
+                <FileSpreadsheetIcon className="mr-2 h-4 w-4" />
+                Bulk import from CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+      </div>
+    );
   };
 
   const handleArchiveLink = async (

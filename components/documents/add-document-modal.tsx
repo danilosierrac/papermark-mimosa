@@ -810,16 +810,6 @@ export function AddDocumentModal({
     setAddDocumentModalOpen && setAddDocumentModalOpen(!isOpen);
   };
 
-  if (!canAddDocuments && children) {
-    if (newVersion) {
-      return (
-                  {children}
-      );
-    }
-    return (
-              <Button>Upgrade to Add Documents</Button>
-    );
-  }
 
   return (
     <>

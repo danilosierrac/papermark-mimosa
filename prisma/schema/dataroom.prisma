@@ -14,7 +14,7 @@ model Dataroom {
   viewerGroups ViewerGroup[]
   brand        DataroomBrand?
   brandId      String?
-  baseBrand    Brand?           @relation("DataroomBaseBrand", fields: [brandId], references: [id], onDelete: SetNull)
+  baseBrand    Brand?             @relation("DataroomBaseBrand", fields: [brandId], references: [id], onDelete: SetNull)
 
   // Internal team members scoped to this dataroom (DATAROOM_MEMBER role).
   userDatarooms UserDataroom[]
@@ -95,15 +95,15 @@ model Dataroom {
 }
 
 // =============================================================================
-// Request List (atomic Task system) — ee/features/request-lists
+// Request List (atomic Task system) — formerly part of the commercial code
 //
 // Status/type are stored as String columns (no DB enums) and validated by Zod
-// in ee/features/request-lists/lib. A Dataroom can have many TaskLists; the
+// in the former commercial request-list code. A Dataroom can have many TaskLists; the
 // public viewer renders a single default list (lowest orderIndex).
 // =============================================================================
 
 model TaskList {
-  id         String   @id @default(cuid())
+  id         String @id @default(cuid())
   name       String
   orderIndex Int?
 
@@ -172,16 +172,16 @@ model Task {
 // Join row connecting a Task to an assignee. Exactly one of viewerId / groupId
 // / linkId / email is set. Multiple assignments per task support bulk-assign.
 model TaskAssignment {
-  id     String  @id @default(cuid())
+  id     String @id @default(cuid())
   taskId String
-  task   Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   viewerId String?
-  viewer   Viewer? @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+  viewer   Viewer?      @relation(fields: [viewerId], references: [id], onDelete: Cascade)
   groupId  String?
   group    ViewerGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
   linkId   String?
-  link     Link?   @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  link     Link?        @relation(fields: [linkId], references: [id], onDelete: Cascade)
   email    String?
 
   notifiedAt     DateTime? // assignment notification sent
@@ -285,14 +285,14 @@ model DataroomFolder {
 }
 
 model DataroomBrand {
-  id                             String  @id @default(cuid())
+  id                             String   @id @default(cuid())
   logo                           String? // This should be a reference to where the file is stored (S3, Google Cloud Storage, etc.)
   hideLogo                       Boolean? // null inherits the team-level Brand.hideLogo
   banner                         String? // This should be a reference to where the file is stored (S3, Google Cloud Storage, etc.)
   brandColor                     String? // This should be a reference to the brand color
   accentColor                    String? // This should be a reference to the accent color (front-page background)
   accentButtonColor              String? // Color used for CTA buttons; falls back to global Brand.accentButtonColor
-  applyAccentColorToDataroomView Boolean @default(false) // When true, apply accentColor to dataroom list/tree viewer background
+  applyAccentColorToDataroomView Boolean  @default(false) // When true, apply accentColor to dataroom list/tree viewer background
   welcomeMessage                 String? // This should be a reference to the welcome message
 
   cardLayout            String  @default("LIST")

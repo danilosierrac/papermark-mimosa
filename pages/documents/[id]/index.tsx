@@ -101,24 +101,16 @@ export default function DocumentPage() {
   }
 
   const AddLinkButton = () => {
-    if (!limits?.canAddLinks) {
-      return (
-                  <Button className="flex h-8 whitespace-nowrap text-xs lg:h-9 lg:text-sm">
-            Upgrade to Create Link
-          </Button>
-      );
-    } else {
-      return (
-        <div className="flex items-center gap-2">
-          <Button
-            className="flex h-8 whitespace-nowrap text-xs lg:h-9 lg:text-sm"
-            onClick={() => setIsLinkSheetOpen(true)}
-          >
-            Create Link
-          </Button>
-        </div>
-      );
-    }
+    return (
+      <div className="flex items-center gap-2">
+        <Button
+          className="flex h-8 whitespace-nowrap text-xs lg:h-9 lg:text-sm"
+          onClick={() => setIsLinkSheetOpen(true)}
+        >
+          Create Link
+        </Button>
+      </div>
+    );
   };
 
   // Show loading only for the initial overview load

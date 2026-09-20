@@ -69,15 +69,6 @@ export function AddTagsModal({
   const isFormValid =
     tagForm.name.length >= 3 && !!tagForm.color && (!tagForm.id || hasChanged);
 
-  // If the team is on a free plan and has reached the max limit of 5 tags
-  if (isFree && tagCount >= 5) {
-    if (children) {
-      return (
-                  <Button>Upgrade to Create Tags</Button>
-      );
-    }
-  }
-
   function handleValueChange(
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void {

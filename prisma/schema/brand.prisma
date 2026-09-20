@@ -31,11 +31,11 @@ model Brand {
 
   name String @default("Default")
 
-  teamId String
-  team   Team   @relation("TeamBrands", fields: [teamId], references: [id], onDelete: Cascade)
-  defaultForTeam Team[] @relation("TeamDefaultBrand")
-  links     Link[]
-  datarooms Dataroom[] @relation("DataroomBaseBrand")
+  teamId         String
+  team           Team       @relation("TeamBrands", fields: [teamId], references: [id], onDelete: Cascade)
+  defaultForTeam Team[]     @relation("TeamDefaultBrand")
+  links          Link[]
+  datarooms      Dataroom[] @relation("DataroomBaseBrand")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

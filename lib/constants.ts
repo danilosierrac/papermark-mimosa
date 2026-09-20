@@ -70,7 +70,7 @@ export const LIMITS = {
 export const MAX_MESSAGE_LENGTH = 4000;
 
 // Office formats (doc/docx/ppt/pptx/keynote/odt/rtf) are not listed: their
-// PDF conversion lived in the removed ee/ directory. Upload PDFs instead.
+// PDF conversion was part of the removed commercial code. Upload PDFs instead.
 export const SUPPORTED_DOCUMENT_MIME_TYPES = [
   "application/pdf", // .pdf
   "application/vnd.ms-excel", // .xls

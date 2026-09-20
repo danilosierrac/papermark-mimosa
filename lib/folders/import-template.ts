@@ -3,7 +3,7 @@ import ExcelJS from "exceljs";
 // =============================================================================
 // Dataroom folder import — server-side Excel template generation (exceljs).
 //
-// Mirrors ee/features/request-lists/lib/export-generator.ts and
+// Mirrors the former request-list export generator and
 // lib/dataroom/index-generator.ts: builds a styled .xlsx and returns
 // { data, filename, mimeType } for a route handler to stream as a download.
 // Parsing uploads stays on SheetJS (lib/folders/parse-folder-import.ts) — the

@@ -2,13 +2,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import { z } from "zod";
 
-import { EU_COUNTRY_CODES, VIDEO_EVENT_TYPES } from "@/lib/constants";
+import { VIDEO_EVENT_TYPES } from "@/lib/constants";
 import { newId } from "@/lib/id-helper";
-import { recordVideoView } from "@/lib/tinybird";
+import { recordVideoView } from "@/lib/events";
 import { Geo } from "@/lib/types";
 import { capitalize, getDomainWithoutWWW, log } from "@/lib/utils";
 import { LOCALHOST_GEO_DATA, getGeoData } from "@/lib/utils/geo";
-import { getIpAddress } from "@/lib/utils/ip";
 import { userAgentFromString } from "@/lib/utils/user-agent";
 
 const bodyValidation = z.object({
@@ -46,7 +45,6 @@ const bodyValidation = z.object({
   bot: z.boolean().optional(),
   referer: z.string().optional(),
   referer_url: z.string().optional(),
-  ip_address: z.string().nullable(),
 });
 
 export default async function handler(
@@ -59,14 +57,11 @@ export default async function handler(
 
   const geo: Geo =
     process.env.VERCEL === "1" ? getGeoData(req.headers) : LOCALHOST_GEO_DATA;
-  const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   // Get user agent data
   const ua = userAgentFromString(req.headers["user-agent"]);
   const referer = req.headers.referer;
   const refererDomain = referer ? getDomainWithoutWWW(referer) : "(direct)";
-
-  const ipAddress = getIpAddress(req.headers);
 
   const videoViewId = newId("videoView");
 
@@ -137,13 +132,6 @@ export default async function handler(
     bot: ua.isBot,
     referer: refererDomain,
     referer_url: referer || "(direct)",
-    ip_address:
-      // only record IP if it's a valid IP and not from a EU country
-      typeof ipAddress === "string" &&
-      ipAddress.trim().length > 0 &&
-      !isEuCountry
-        ? ipAddress
-        : null,
   };
 
   const result = bodyValidation.safeParse(videoViewObject);
@@ -158,7 +146,7 @@ export default async function handler(
     res.status(200).json({ message: "Video view recorded" });
   } catch (error) {
     log({
-      message: `Failed to record video view (tinybird) for ${linkId}. \n\n ${error}`,
+      message: `Failed to record video view for ${linkId}. \n\n ${error}`,
       type: "error",
       mention: true,
     });

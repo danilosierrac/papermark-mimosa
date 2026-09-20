@@ -7,7 +7,7 @@ import { errorhandler } from "@/lib/errorHandler";
 import { getVisitors } from "@/lib/api/visitors/get-visitors";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/redis";
-import { getDocumentDurationPerViewer } from "@/lib/tinybird";
+import { getDocumentDurationPerViewer } from "@/lib/events";
 import { CustomUser } from "@/lib/types";
 import { Prisma } from "@prisma/client";
 

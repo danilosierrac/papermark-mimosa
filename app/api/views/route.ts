@@ -901,7 +901,7 @@ export async function POST(request: NextRequest) {
       if (newView) {
         // Record view in the background to avoid blocking the response
         waitUntil(
-          // Record link view in Tinybird
+          // Record the link open in Postgres
           recordLinkView({
             req: request,
             clickId: newId("linkView"),

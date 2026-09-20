@@ -10,8 +10,8 @@ import { isDataroomScopedRole } from "@/lib/api/rbac/permissions";
 import { LIMITS } from "@/lib/constants";
 import { errorhandler } from "@/lib/errorHandler";
 import prisma from "@/lib/prisma";
-import { getViewPageDuration } from "@/lib/tinybird";
-import { getVideoEventsByDocument } from "@/lib/tinybird/pipes";
+import { getViewPageDuration } from "@/lib/events";
+import { getVideoEventsByDocument } from "@/lib/events";
 import { CustomUser } from "@/lib/types";
 import { log } from "@/lib/utils";
 import {

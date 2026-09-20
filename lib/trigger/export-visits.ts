@@ -9,7 +9,7 @@ import {
   getViewPageDuration,
   getViewUserAgent,
   getViewUserAgent_v2,
-} from "@/lib/tinybird";
+} from "@/lib/events";
 
 // Helper function to properly escape CSV fields
 function escapeCsvField(field: string | number | null | undefined): string {
@@ -37,8 +37,8 @@ function createCsvRow(fields: (string | number | null | undefined)[]): string {
   return fields.map(escapeCsvField).join(",");
 }
 
-// Create a bottleneck instance to limit tinybird API calls
-const tinybirdLimiter = new Bottleneck({
+// Bound concurrent analytics queries against Postgres
+const queryLimiter = new Bottleneck({
   maxConcurrent: 5, // Maximum 5 concurrent requests
   minTime: 200, // Minimum 200ms between requests
 });
@@ -313,16 +313,16 @@ async function exportDocumentVisits(
       viewedAt: view.viewedAt,
     });
 
-    // Rate-limited calls to tinybird
+    // Rate-limited analytics queries
     const [duration, userAgentData] = await Promise.all([
-      tinybirdLimiter.schedule(() =>
+      queryLimiter.schedule(() =>
         getViewPageDuration({
           documentId: docId,
           viewId: view.id,
           since: 0,
         }),
       ),
-      tinybirdLimiter.schedule(async () => {
+      queryLimiter.schedule(async () => {
         const result = await getViewUserAgent({
           viewId: view.id,
         });
@@ -633,7 +633,7 @@ async function exportDataroomVisits(
         },
       );
 
-      const duration = await tinybirdLimiter.schedule(() =>
+      const duration = await queryLimiter.schedule(() =>
         getViewPageDuration({
           documentId: docView.document?.id || "null",
           viewId: docView.id,
@@ -692,13 +692,13 @@ async function exportDataroomVisits(
     dataroomViewMap.set(view.id, view);
   });
 
-  // Fetch user agent data per dataroom view (stored in pm_click_events via recordLinkView)
+  // Fetch user agent data per dataroom view (stored as link-open events via recordLinkView)
   const userAgentDataMap = new Map<
     string,
     { browser: string; os: string; device: string; country: string; city: string }
   >();
   for (const drView of dataroomViews) {
-    const userAgentData = await tinybirdLimiter.schedule(() =>
+    const userAgentData = await queryLimiter.schedule(() =>
       getViewUserAgent({ viewId: drView.id }),
     );
 
