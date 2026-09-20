@@ -1,6 +1,6 @@
 datasource db {
   provider          = "postgresql"
-  url               = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  url               = env("POSTGRES_URL") // Vercel's Prisma Postgres integration populates this one, not POSTGRES_PRISMA_URL
   directUrl         = env("POSTGRES_URL") // uses a direct (non-pooled) connection
   shadowDatabaseUrl = env("POSTGRES_PRISMA_SHADOW_URL") // used for migrations
 }
