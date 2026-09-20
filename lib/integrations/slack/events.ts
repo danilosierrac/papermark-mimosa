@@ -161,18 +161,33 @@ export class SlackEventManager {
   }
 }
 
-export const slackEventManager = new SlackEventManager();
+// Lazy singleton: constructing SlackEventManager throws when Slack isn't
+// configured, so it must not run at module scope (that would take down every
+// route that imports notifyDocumentView, e.g. /api/views, the moment the app
+// boots without a Slack app configured).
+let _slackEventManager: SlackEventManager | null = null;
+function getSlackEventManager(): SlackEventManager | null {
+  if (!process.env.SLACK_CLIENT_ID || !process.env.SLACK_CLIENT_SECRET) {
+    return null;
+  }
+  if (!_slackEventManager) _slackEventManager = new SlackEventManager();
+  return _slackEventManager;
+}
 
 export async function notifyDocumentView(
   data: Omit<SlackEventData, "eventType">,
 ) {
-  await slackEventManager.processEvent({ ...data, eventType: "document_view" });
+  const manager = getSlackEventManager();
+  if (!manager) return;
+  await manager.processEvent({ ...data, eventType: "document_view" });
 }
 
 export async function notifyDataroomAccess(
   data: Omit<SlackEventData, "eventType">,
 ) {
-  await slackEventManager.processEvent({
+  const manager = getSlackEventManager();
+  if (!manager) return;
+  await manager.processEvent({
     ...data,
     eventType: "dataroom_access",
   });
@@ -181,7 +196,9 @@ export async function notifyDataroomAccess(
 export async function notifyDocumentDownload(
   data: Omit<SlackEventData, "eventType">,
 ) {
-  await slackEventManager.processEvent({
+  const manager = getSlackEventManager();
+  if (!manager) return;
+  await manager.processEvent({
     ...data,
     eventType: "document_download",
   });
