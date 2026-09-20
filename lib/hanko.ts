@@ -1,16 +1,21 @@
 import { tenant } from "@teamhanko/passkeys-next-auth-provider";
 
-if (!process.env.HANKO_API_KEY || !process.env.NEXT_PUBLIC_HANKO_TENANT_ID) {
-  // These need to be set in .env.local
-  // You get them from the Passkey API itself, e.g. when first setting up the server.
-  throw new Error(
-    "Please set HANKO_API_KEY and NEXT_PUBLIC_HANKO_TENANT_ID in your .env.local file.",
-  );
-}
+// Passkey login is optional. Without real Hanko credentials, export a
+// disabled tenant instead of throwing at import time and taking down every
+// route that happens to import this module (e.g. Slack OAuth).
+const hankoConfigured =
+  !!process.env.HANKO_API_KEY &&
+  process.env.HANKO_API_KEY !== "add-your-hanko-api-key" &&
+  !!process.env.NEXT_PUBLIC_HANKO_TENANT_ID &&
+  process.env.NEXT_PUBLIC_HANKO_TENANT_ID !== "add-your-hanko-tenent-id";
 
-const hanko = tenant({
-  apiKey: process.env.HANKO_API_KEY!,
-  tenantId: process.env.NEXT_PUBLIC_HANKO_TENANT_ID!,
-});
+const hanko = hankoConfigured
+  ? tenant({
+      apiKey: process.env.HANKO_API_KEY!,
+      tenantId: process.env.NEXT_PUBLIC_HANKO_TENANT_ID!,
+    })
+  : (tenant({ apiKey: "disabled", tenantId: "disabled" }) as ReturnType<
+      typeof tenant
+    >);
 
 export default hanko;
