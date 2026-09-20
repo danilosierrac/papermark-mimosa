@@ -2,16 +2,6 @@ import dynamic from "next/dynamic";
 
 import { useMemo } from "react";
 
-import { ViewerChatPanel } from "@/ee/features/ai/components/viewer-chat-panel";
-import {
-  ViewerChatLayout,
-  ViewerChatProvider,
-} from "@/ee/features/ai/components/viewer-chat-provider";
-import { ViewerChatToggle } from "@/ee/features/ai/components/viewer-chat-toggle";
-import {
-  ConversationSidebarLayout,
-  ConversationSidebarProvider,
-} from "@/ee/features/conversations/components/viewer/conversation-sidebar-provider";
 import {
   Brand,
   DataroomBrand,
@@ -33,7 +23,6 @@ import { DEFAULT_DOCUMENT_VIEW_TYPE } from "@/components/view/document-view";
 import { NotionPage } from "@/components/view/viewer/notion-page";
 import PDFViewer from "@/components/view/viewer/pdf-default-viewer";
 
-import { DEFAULT_DATAROOM_DOCUMENT_VIEW_TYPE } from "./dataroom/dataroom-document-view";
 import LinkPreview from "./link-preview";
 import { TNavData } from "./nav";
 import AdvancedExcelViewer from "./viewer/advanced-excel-viewer";
@@ -79,7 +68,7 @@ export default function ViewData({
   textSelectionEnabled,
   previewToken,
 }: {
-  viewData: DEFAULT_DOCUMENT_VIEW_TYPE | DEFAULT_DATAROOM_DOCUMENT_VIEW_TYPE;
+  viewData: DEFAULT_DOCUMENT_VIEW_TYPE;
   link: LinkWithDocument | LinkWithDataroomDocument;
   document: TViewDocumentData;
   notionData?: {
@@ -111,20 +100,12 @@ export default function ViewData({
   });
 
   const viewerId = "viewerId" in viewData ? viewData.viewerId : undefined;
-  const conversationsEnabled =
-    !!dataroomId &&
-    ("conversationsEnabled" in viewData
-      ? viewData.conversationsEnabled
-      : false);
+  const conversationsEnabled = false;
   const allowDownload =
     document.downloadOnly ||
     isDownloadAllowed(canDownload, link.allowDownload ?? false);
 
-  // Determine dataroom name if applicable
-  const dataroomName =
-    dataroomId && "dataroomName" in viewData
-      ? viewData.dataroomName
-      : undefined;
+  const dataroomName: string | undefined = undefined;
 
   const navData: TNavData = useMemo(
     () => ({
@@ -162,155 +143,132 @@ export default function ViewData({
     ],
   );
 
-  // Check if agents are enabled (returned from views API after access is granted)
-  const agentsEnabled =
-    "agentsEnabled" in viewData ? viewData.agentsEnabled : false;
-
   return (
-    <ConversationSidebarProvider>
-      <ViewerChatProvider
-        enabled={agentsEnabled}
-        documentId={document.id}
-        documentName={document.name}
-        dataroomId={dataroomId}
-        dataroomName={dataroomName}
-        linkId={link.id}
-        viewId={viewData.viewId}
-        viewerId={"viewerId" in viewData ? viewData.viewerId : undefined}
-      >
-        <ViewerChatLayout>
-          <ConversationSidebarLayout>
-            {notionData?.recordMap ? (
-              <NotionPage
-                recordMap={notionData.recordMap}
-                versionNumber={document.versions[0].versionNumber}
-                theme={notionData.theme}
-                screenshotProtectionEnabled={link.enableScreenshotProtection!}
-                confidentialViewEnabled={!!link.enableConfidentialView}
-                textSelectionEnabled={textSelectionEnabled ?? false}
-                navData={navData}
-              />
-            ) : viewData.fileType === "link" ? (
-              <LinkPreview
-                linkUrl={viewData.file || document.versions[0]?.file || ""}
-                linkName={document.name}
-                versionNumber={document.versions[0]?.versionNumber || 1}
-                isEmbeddable={viewData.isEmbeddable ?? false}
-                navData={navData}
-              />
-            ) : document.downloadOnly ? (
-              <DownloadOnlyViewer
-                versionNumber={document.versions[0].versionNumber}
-                documentName={document.name}
-                navData={navData}
-              />
-            ) : viewData.fileType === "html" && viewData.htmlContent ? (
-              <HtmlViewer
-                htmlContent={viewData.htmlContent}
-                documentName={document.name}
-                versionNumber={document.versions[0].versionNumber}
-                screenshotProtectionEnabled={link.enableScreenshotProtection!}
-                confidentialViewEnabled={!!link.enableConfidentialView}
-                navData={navData}
-              />
-            ) : viewData.fileType === "sheet" && viewData.sheetData ? (
-              <ExcelViewer
-                versionNumber={document.versions[0].versionNumber}
-                sheetData={viewData.sheetData}
-                screenshotProtectionEnabled={link.enableScreenshotProtection!}
-                confidentialViewEnabled={!!link.enableConfidentialView}
-                navData={navData}
-              />
-            ) : viewData.fileType === "sheet" && useAdvancedExcelViewer ? (
-              <AdvancedExcelViewer
-                file={viewData.file!}
-                versionNumber={document.versions[0].versionNumber}
-                screenshotProtectionEnabled={link.enableScreenshotProtection!}
-                navData={navData}
-              />
-            ) : viewData.fileType === "image" ? (
-              <ImageViewer
-                file={viewData.file!}
-                screenshotProtectionEnabled={link.enableScreenshotProtection!}
-                confidentialViewEnabled={!!link.enableConfidentialView}
-                versionNumber={document.versions[0].versionNumber}
-                showPoweredByBanner={showPoweredByBanner}
-                viewerEmail={viewerEmail}
-                watermarkConfig={
-                  link.enableWatermark
-                    ? (link.watermarkConfig as WatermarkConfig)
-                    : null
-                }
-                ipAddress={viewData.ipAddress}
-                linkName={link.name ?? `Link #${link.id.slice(-5)}`}
-                navData={navData}
-              />
-            ) : viewData.pages && !document.versions[0].isVertical ? (
-              <PagesHorizontalViewer
-                pages={lazyPages}
-                feedbackEnabled={link.enableFeedback!}
-                screenshotProtectionEnabled={link.enableScreenshotProtection!}
-                confidentialViewEnabled={!!link.enableConfidentialView}
-                versionNumber={document.versions[0].versionNumber}
-                showPoweredByBanner={showPoweredByBanner}
-                showAccountCreationSlide={showAccountCreationSlide}
-                enableQuestion={link.enableQuestion}
-                feedback={link.feedback}
-                viewerEmail={viewerEmail}
-                watermarkConfig={
-                  link.enableWatermark
-                    ? (link.watermarkConfig as WatermarkConfig)
-                    : null
-                }
-                ipAddress={viewData.ipAddress}
-                linkName={link.name ?? `Link #${link.id.slice(-5)}`}
-                navData={navData}
-                ensurePagesLoaded={ensurePagesLoaded}
-              />
-            ) : viewData.pages && document.versions[0].isVertical ? (
-              <PagesVerticalViewer
-                pages={lazyPages}
-                feedbackEnabled={link.enableFeedback!}
-                screenshotProtectionEnabled={link.enableScreenshotProtection!}
-                confidentialViewEnabled={!!link.enableConfidentialView}
-                versionNumber={document.versions[0].versionNumber}
-                showPoweredByBanner={showPoweredByBanner}
-                enableQuestion={link.enableQuestion}
-                feedback={link.feedback}
-                viewerEmail={viewerEmail}
-                watermarkConfig={
-                  link.enableWatermark
-                    ? (link.watermarkConfig as WatermarkConfig)
-                    : null
-                }
-                ipAddress={viewData.ipAddress}
-                linkName={link.name ?? `Link #${link.id.slice(-5)}`}
-                navData={navData}
-                ensurePagesLoaded={ensurePagesLoaded}
-              />
-            ) : viewData.fileType === "video" ? (
-              <VideoViewer
-                file={viewData.file!}
-                screenshotProtectionEnabled={link.enableScreenshotProtection!}
-                confidentialViewEnabled={!!link.enableConfidentialView}
-                versionNumber={document.versions[0].versionNumber}
-                navData={navData}
-              />
-            ) : (
-              <PDFViewer
-                file={viewData.file}
-                name={document.name}
-                versionNumber={document.versions[0].versionNumber}
-                navData={navData}
-              />
-            )}
-          </ConversationSidebarLayout>
-        </ViewerChatLayout>
-
-        {/* AI Chat Components */}
-        <ViewerChatPanel />
-        <ViewerChatToggle />
-      </ViewerChatProvider>
-    </ConversationSidebarProvider>
+    <>
+                                  {notionData?.recordMap ? (
+        <NotionPage
+          recordMap={notionData.recordMap}
+          versionNumber={document.versions[0].versionNumber}
+          theme={notionData.theme}
+          screenshotProtectionEnabled={link.enableScreenshotProtection!}
+          confidentialViewEnabled={!!link.enableConfidentialView}
+          textSelectionEnabled={textSelectionEnabled ?? false}
+          navData={navData}
+        />
+      ) : viewData.fileType === "link" ? (
+        <LinkPreview
+          linkUrl={viewData.file || document.versions[0]?.file || ""}
+          linkName={document.name}
+          versionNumber={document.versions[0]?.versionNumber || 1}
+          isEmbeddable={viewData.isEmbeddable ?? false}
+          navData={navData}
+        />
+      ) : document.downloadOnly ? (
+        <DownloadOnlyViewer
+          versionNumber={document.versions[0].versionNumber}
+          documentName={document.name}
+          navData={navData}
+        />
+      ) : viewData.fileType === "html" && viewData.htmlContent ? (
+        <HtmlViewer
+          htmlContent={viewData.htmlContent}
+          documentName={document.name}
+          versionNumber={document.versions[0].versionNumber}
+          screenshotProtectionEnabled={link.enableScreenshotProtection!}
+          confidentialViewEnabled={!!link.enableConfidentialView}
+          navData={navData}
+        />
+      ) : viewData.fileType === "sheet" && viewData.sheetData ? (
+        <ExcelViewer
+          versionNumber={document.versions[0].versionNumber}
+          sheetData={viewData.sheetData}
+          screenshotProtectionEnabled={link.enableScreenshotProtection!}
+          confidentialViewEnabled={!!link.enableConfidentialView}
+          navData={navData}
+        />
+      ) : viewData.fileType === "sheet" && useAdvancedExcelViewer ? (
+        <AdvancedExcelViewer
+          file={viewData.file!}
+          versionNumber={document.versions[0].versionNumber}
+          screenshotProtectionEnabled={link.enableScreenshotProtection!}
+          navData={navData}
+        />
+      ) : viewData.fileType === "image" ? (
+        <ImageViewer
+          file={viewData.file!}
+          screenshotProtectionEnabled={link.enableScreenshotProtection!}
+          confidentialViewEnabled={!!link.enableConfidentialView}
+          versionNumber={document.versions[0].versionNumber}
+          showPoweredByBanner={showPoweredByBanner}
+          viewerEmail={viewerEmail}
+          watermarkConfig={
+            link.enableWatermark
+              ? (link.watermarkConfig as WatermarkConfig)
+              : null
+          }
+          ipAddress={viewData.ipAddress}
+          linkName={link.name ?? `Link #${link.id.slice(-5)}`}
+          navData={navData}
+        />
+      ) : viewData.pages && !document.versions[0].isVertical ? (
+        <PagesHorizontalViewer
+          pages={lazyPages}
+          feedbackEnabled={link.enableFeedback!}
+          screenshotProtectionEnabled={link.enableScreenshotProtection!}
+          confidentialViewEnabled={!!link.enableConfidentialView}
+          versionNumber={document.versions[0].versionNumber}
+          showPoweredByBanner={showPoweredByBanner}
+          showAccountCreationSlide={showAccountCreationSlide}
+          enableQuestion={link.enableQuestion}
+          feedback={link.feedback}
+          viewerEmail={viewerEmail}
+          watermarkConfig={
+            link.enableWatermark
+              ? (link.watermarkConfig as WatermarkConfig)
+              : null
+          }
+          ipAddress={viewData.ipAddress}
+          linkName={link.name ?? `Link #${link.id.slice(-5)}`}
+          navData={navData}
+          ensurePagesLoaded={ensurePagesLoaded}
+        />
+      ) : viewData.pages && document.versions[0].isVertical ? (
+        <PagesVerticalViewer
+          pages={lazyPages}
+          feedbackEnabled={link.enableFeedback!}
+          screenshotProtectionEnabled={link.enableScreenshotProtection!}
+          confidentialViewEnabled={!!link.enableConfidentialView}
+          versionNumber={document.versions[0].versionNumber}
+          showPoweredByBanner={showPoweredByBanner}
+          enableQuestion={link.enableQuestion}
+          feedback={link.feedback}
+          viewerEmail={viewerEmail}
+          watermarkConfig={
+            link.enableWatermark
+              ? (link.watermarkConfig as WatermarkConfig)
+              : null
+          }
+          ipAddress={viewData.ipAddress}
+          linkName={link.name ?? `Link #${link.id.slice(-5)}`}
+          navData={navData}
+          ensurePagesLoaded={ensurePagesLoaded}
+        />
+      ) : viewData.fileType === "video" ? (
+        <VideoViewer
+          file={viewData.file!}
+          screenshotProtectionEnabled={link.enableScreenshotProtection!}
+          confidentialViewEnabled={!!link.enableConfidentialView}
+          versionNumber={document.versions[0].versionNumber}
+          navData={navData}
+        />
+      ) : (
+        <PDFViewer
+          file={viewData.file}
+          name={document.name}
+          versionNumber={document.versions[0].versionNumber}
+          navData={navData}
+        />
+      )}
+    </>
   );
 }

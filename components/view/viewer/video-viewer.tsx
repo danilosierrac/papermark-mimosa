@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-import { ConfidentialViewOverlay } from "@/ee/features/permissions/components/confidential-view/confidential-view-overlay";
 import { toast } from "sonner";
 
 import { createVideoTracker } from "@/lib/tracking/video-tracking";
@@ -119,7 +118,6 @@ export default function VideoViewer({
             preventDownload={!allowDownload}
           />
           {screenshotProtectionEnabled && <ScreenProtector />}
-          {confidentialViewEnabled ? <ConfidentialViewOverlay /> : null}
         </div>
       </div>
     </>

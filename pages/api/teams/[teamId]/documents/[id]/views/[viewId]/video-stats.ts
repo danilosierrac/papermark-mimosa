@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth/next";
 
 import { enforceDocumentMemberScope } from "@/lib/api/rbac/guard";
 import prisma from "@/lib/prisma";
-import { getVideoEventsByView } from "@/lib/tinybird/pipes";
+import { getVideoEventsByView } from "@/lib/events";
 import { CustomUser } from "@/lib/types";
 import {
   countablePlaybackEvents,

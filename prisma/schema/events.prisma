@@ -1,0 +1,158 @@
+// View analytics events, stored in Postgres (replacing the hosted analytics
+// service upstream depends on). Rows mirror the former event schemas field
+// for field, with one deliberate difference: no viewer IP address is stored.
+//
+// Retention: rows older than 365 days are deleted by
+// lib/events/retention.ts (run via lib/trigger/cleanup-view-events.ts or
+// scripts/cleanup-view-events.ts).
+
+/// One row per page-view heartbeat from the document viewer (former
+/// `page_views__v3`). `duration` is milliseconds spent on `pageNumber`.
+model PageViewEvent {
+  id              String   @id
+  linkId          String
+  documentId      String
+  viewId          String
+  dataroomId      String?
+  versionNumber   Int      @default(1)
+  time            DateTime
+  duration        Int
+  pageNumber      String
+  country         String   @default("Unknown")
+  city            String   @default("Unknown")
+  region          String   @default("Unknown")
+  latitude        String   @default("Unknown")
+  longitude       String   @default("Unknown")
+  ua              String   @default("Unknown")
+  browser         String   @default("Unknown")
+  browserVersion  String   @default("Unknown")
+  engine          String   @default("Unknown")
+  engineVersion   String   @default("Unknown")
+  os              String   @default("Unknown")
+  osVersion       String   @default("Unknown")
+  device          String   @default("Desktop")
+  deviceVendor    String   @default("Unknown")
+  deviceModel     String   @default("Unknown")
+  cpuArchitecture String   @default("Unknown")
+  bot             Boolean  @default(false)
+  referer         String   @default("(direct)")
+  refererUrl      String   @default("(direct)")
+
+  @@index([documentId, viewId])
+  @@index([documentId, time])
+  @@index([linkId, time])
+  @@index([viewId])
+  @@index([time])
+}
+
+/// One row per link open (former `pm_click_events__v1`): who opened, when,
+/// from which device and country. No IP address.
+model LinkViewEvent {
+  id              String   @id
+  timestamp       DateTime
+  viewId          String
+  linkId          String
+  documentId      String?
+  dataroomId      String?
+  continent       String   @default("Unknown")
+  country         String   @default("Unknown")
+  city            String   @default("Unknown")
+  region          String   @default("Unknown")
+  latitude        String   @default("Unknown")
+  longitude       String   @default("Unknown")
+  device          String   @default("Desktop")
+  deviceModel     String   @default("Unknown")
+  deviceVendor    String   @default("Unknown")
+  browser         String   @default("Unknown")
+  browserVersion  String   @default("Unknown")
+  os              String   @default("Unknown")
+  osVersion       String   @default("Unknown")
+  engine          String   @default("Unknown")
+  engineVersion   String   @default("Unknown")
+  cpuArchitecture String   @default("Unknown")
+  ua              String   @default("Unknown")
+  bot             Boolean  @default(false)
+  referer         String   @default("(direct)")
+  refererUrl      String   @default("(direct)")
+
+  @@index([viewId])
+  @@index([documentId, timestamp])
+  @@index([linkId, timestamp])
+  @@index([timestamp])
+}
+
+/// A click on a link inside a document (former `click_events__v1`).
+model ClickEvent {
+  id            String   @id
+  timestamp     DateTime
+  sessionId     String
+  linkId        String
+  documentId    String
+  dataroomId    String?
+  viewId        String
+  pageNumber    String
+  versionNumber Int      @default(1)
+  href          String
+
+  @@index([documentId, viewId])
+  @@index([timestamp])
+}
+
+/// Video playback events (former `video_views__v1`). `playbackRate` is
+/// stored x100 (150 = 1.5x) and `volume` as 0-100, as before. No IP address.
+model VideoEvent {
+  id              String   @id
+  timestamp       DateTime
+  linkId          String
+  documentId      String
+  viewId          String
+  dataroomId      String?
+  versionNumber   Int      @default(1)
+  eventType       String
+  startTime       Int
+  endTime         Int      @default(0)
+  playbackRate    Int      @default(100)
+  volume          Int      @default(100)
+  isMuted         Boolean  @default(false)
+  isFocused       Boolean  @default(true)
+  isFullscreen    Boolean  @default(false)
+  country         String   @default("Unknown")
+  city            String   @default("Unknown")
+  region          String   @default("Unknown")
+  latitude        String   @default("Unknown")
+  longitude       String   @default("Unknown")
+  ua              String   @default("Unknown")
+  browser         String   @default("Unknown")
+  browserVersion  String   @default("Unknown")
+  engine          String   @default("Unknown")
+  engineVersion   String   @default("Unknown")
+  os              String   @default("Unknown")
+  osVersion       String   @default("Unknown")
+  device          String   @default("Desktop")
+  deviceVendor    String   @default("Unknown")
+  deviceModel     String   @default("Unknown")
+  cpuArchitecture String   @default("Unknown")
+  bot             Boolean  @default(false)
+  referer         String   @default("(direct)")
+  refererUrl      String   @default("(direct)")
+
+  @@index([documentId, viewId])
+  @@index([documentId, timestamp])
+  @@index([timestamp])
+}
+
+/// Outgoing webhook delivery log (former `webhook_events__v1`).
+model WebhookEvent {
+  id           String   @id
+  timestamp    DateTime @default(now())
+  webhookId    String
+  messageId    String
+  event        String
+  url          String
+  httpStatus   Int
+  requestBody  String
+  responseBody String
+
+  @@index([webhookId, timestamp])
+  @@index([timestamp])
+}

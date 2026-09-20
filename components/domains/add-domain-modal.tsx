@@ -1,7 +1,6 @@
 import { type ElementType, useEffect, useRef, useState } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { Domain, LinkType } from "@prisma/client";
 import { AlertTriangleIcon, CircleCheckIcon, InfoIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -27,8 +26,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 
-import { UpgradePlanModal } from "../billing/upgrade-plan-modal";
-import { UpgradeButton } from "../ui/upgrade-button";
 
 const sanitizeDomain = (value: string) =>
   value
@@ -249,47 +246,6 @@ export function AddDomainModal({
     }
   };
 
-  // If the team is
-  // - on a free plan
-  // - on pro plan and has custom domain on pro plan disabled
-  // - on business plan and has custom domain in dataroom disabled
-  // => then show the upgrade modal
-  if (
-    isFree ||
-    (isPro && !limits?.customDomainOnPro) ||
-    (linkType === "DATAROOM_LINK" &&
-      isBusiness &&
-      !limits?.customDomainInDataroom)
-  ) {
-    if (children) {
-      return (
-        <UpgradeButton
-          text="Add Domain"
-          clickedPlan={
-            linkType === "DATAROOM_LINK"
-              ? PlanEnum.DataRooms
-              : PlanEnum.Business
-          }
-          highlightItem={["custom-domain"]}
-          trigger="add_domain_overview"
-        />
-      );
-    } else {
-      return (
-        <UpgradePlanModal
-          clickedPlan={
-            linkType === "DATAROOM_LINK"
-              ? PlanEnum.DataRooms
-              : PlanEnum.Business
-          }
-          open={open}
-          setOpen={setOpen}
-          trigger={"add_domain_link_sheet"}
-          highlightItem={["custom-domain"]}
-        />
-      );
-    }
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import prisma from "@/lib/prisma";
-import { recordWebhookEvent } from "@/lib/tinybird/publish";
+import { recordWebhookEvent } from "@/lib/events";
 import { getSearchParams } from "@/lib/utils/get-search-params";
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import {

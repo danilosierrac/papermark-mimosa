@@ -5,7 +5,7 @@
 // into a flat list of folders with parent references, ready to POST to the
 // bulk folder endpoint. `xlsx` (SheetJS) is imported dynamically so it stays
 // out of the main bundle until a user actually picks a file — the same split
-// the request-list import (ee/features/request-lists/lib/excel.ts) uses.
+// the former request-list import used.
 // =============================================================================
 import type { BulkFolderRequestItem } from "./create-folder";
 

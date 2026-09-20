@@ -1,22 +1,22 @@
 model Team {
-  id            String         @id @default(cuid())
-  name          String
-  slug          String?        @unique // Optional human-readable identifier (e.g. "acme"), used for SSO login
-  users         UserTeam[]
-  userDatarooms UserDataroom[]
-  documents     Document[]
-  folders       Folder[]
-  domains       Domain[]
-  invitations   Invitation[]
-  sentEmails    SentEmail[]
-  brands         Brand[] @relation("TeamBrands")
+  id             String         @id @default(cuid())
+  name           String
+  slug           String?        @unique // Optional human-readable identifier (e.g. "acme"), used for SSO login
+  users          UserTeam[]
+  userDatarooms  UserDataroom[]
+  documents      Document[]
+  folders        Folder[]
+  domains        Domain[]
+  invitations    Invitation[]
+  sentEmails     SentEmail[]
+  brands         Brand[]        @relation("TeamBrands")
   defaultBrandId String?
-  defaultBrand   Brand?  @relation("TeamDefaultBrand", fields: [defaultBrandId], references: [id], onDelete: SetNull)
-  datarooms     Dataroom[]
-  agreements    Agreement[]
-  viewerGroups  ViewerGroup[]
-  visitorGroups VisitorGroup[]
-  viewers       Viewer[]
+  defaultBrand   Brand?         @relation("TeamDefaultBrand", fields: [defaultBrandId], references: [id], onDelete: SetNull)
+  datarooms      Dataroom[]
+  agreements     Agreement[]
+  viewerGroups   ViewerGroup[]
+  visitorGroups  VisitorGroup[]
+  viewers        Viewer[]
 
   permissionGroups  PermissionGroup[]
   linkPresets       LinkPreset[] // Link presets for the team
@@ -41,7 +41,7 @@ model Team {
   taskLists TaskList[]
   tasks     Task[]
 
-  plan           String    @default("free")
+  plan           String    @default("business") // self-hosted fork: no plan tiers
   stripeId       String?   @unique // Stripe customer ID
   subscriptionId String?   @unique // Stripe subscription ID
   startsAt       DateTime? // Stripe subscription start date

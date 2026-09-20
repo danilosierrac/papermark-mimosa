@@ -5,14 +5,12 @@ import { useRouter } from "next/router";
 
 import * as React from "react";
 
-import { PlanEnum } from "@/ee/stripe/constants";
 import { CrownIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 import { Separator } from "@/components/ui/separator";
 
-import { UpgradePlanModal } from "./billing/upgrade-plan-modal";
 
 type Props = {
   navigation: {
@@ -22,7 +20,6 @@ type Props = {
     tag?: string;
     disabled?: boolean;
     limited?: boolean;
-    clickedPlan?: PlanEnum;
     highlightItem?: string[];
   }[];
   className?: string;
@@ -39,7 +36,7 @@ export const NavMenu: React.FC<React.PropsWithChildren<Props>> = ({
       <div className="flex w-full items-center overflow-x-auto px-1 sm:px-4 sm:pl-1">
         <ul className="flex flex-row gap-4">
           {navigation.map(
-            ({ label, href, segment, tag, disabled, limited, clickedPlan, highlightItem }) => (
+            ({ label, href, segment, tag, disabled, limited, highlightItem }) => (
               <NavItem
                 key={label}
                 label={label}
@@ -48,7 +45,6 @@ export const NavMenu: React.FC<React.PropsWithChildren<Props>> = ({
                 tag={tag}
                 disabled={disabled}
                 limited={limited}
-                clickedPlan={clickedPlan}
                 highlightItem={highlightItem}
               />
             ),
@@ -67,7 +63,6 @@ const NavItem: React.FC<Props["navigation"][0]> = ({
   tag,
   disabled,
   limited,
-  clickedPlan,
   highlightItem,
 }) => {
   const router = useRouter();
@@ -105,17 +100,10 @@ const NavItem: React.FC<Props["navigation"][0]> = ({
       )}
     >
       {limited ? (
-        <UpgradePlanModal
-          key={label}
-          clickedPlan={clickedPlan ?? PlanEnum.DataRoomsPlus}
-          trigger={label}
-          highlightItem={highlightItem}
-        >
-          <div className="text-content-subtle hover:bg-background-subtle -mx-3 flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted hover:text-primary">
+                  <div className="text-content-subtle hover:bg-background-subtle -mx-3 flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted hover:text-primary">
             {label}
             <CrownIcon className="h-4 w-4 text-muted-foreground" />
           </div>
-        </UpgradePlanModal>
       ) : (
         <Link
           href={href}

@@ -4,11 +4,11 @@ enum ReferralTrack {
 }
 
 model ReferralInvite {
-  id String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId String?
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId       String?
+  team         Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
   /**
    * Whose cap and discount this invite counts against — the fund's team, or the
    * sender alone. One non-null key rather than a pair of nullable ones: on a
@@ -16,8 +16,8 @@ model ReferralInvite {
    * keys guarded different scopes and a member could not invite a company both
    * for their fund and for themselves.
    */
-  scopeId String
-  email String
+  scopeId      String
+  email        String
   referralLink String?
   sentAt       DateTime @default(now())
 

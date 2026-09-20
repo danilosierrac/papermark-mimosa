@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { reportDeniedAccessAttempt } from "@/ee/features/access-notifications";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { getServerSession } from "next-auth";
 
@@ -431,13 +430,6 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        waitUntil(
-          reportDeniedAccessAttempt(
-            link,
-            effectiveEmail ?? "",
-            emailAccess.reason,
-          ),
-        );
 
         return NextResponse.json(
           {
@@ -909,7 +901,7 @@ export async function POST(request: NextRequest) {
       if (newView) {
         // Record view in the background to avoid blocking the response
         waitUntil(
-          // Record link view in Tinybird
+          // Record the link open in Postgres
           recordLinkView({
             req: request,
             clickId: newId("linkView"),

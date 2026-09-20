@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import prisma from "@/lib/prisma";
-import { getTotalTeamDuration } from "@/lib/tinybird/pipes";
+import { getTotalTeamDuration } from "@/lib/events";
 
 import { COUNTRIES } from "../constants";
 
@@ -422,7 +422,7 @@ export async function getYearInReviewStats(
   }
 
   // Fetch all batches in parallel
-  const tinybirdResults = await Promise.all(
+  const durationResults = await Promise.all(
     batches.map((batch) =>
       getTotalTeamDuration({
         documentIds: batch.join(","),
@@ -436,7 +436,7 @@ export async function getYearInReviewStats(
   let totalDuration = 0;
   const allCountries = new Set<string>();
 
-  for (const result of tinybirdResults) {
+  for (const result of durationResults) {
     if (result.data[0]) {
       totalDuration += result.data[0].total_duration || 0;
       result.data[0].unique_countries?.forEach((country: string) =>

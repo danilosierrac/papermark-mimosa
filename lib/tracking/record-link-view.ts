@@ -1,15 +1,14 @@
 import { NextRequest, userAgent } from "next/server";
 
-import { geolocation, ipAddress } from "@vercel/functions";
+import { geolocation } from "@vercel/functions";
 
-import { recordLinkViewTB } from "@/lib/tinybird";
+import { recordLinkViewEvent } from "@/lib/events";
 import { isBot } from "@/lib/utils/user-agent";
 
 import sendNotification from "../api/notification-helper";
 import { sendLinkViewWebhook } from "../api/views/send-webhook-event";
-import { EU_COUNTRY_CODES } from "../constants";
 import { capitalize, getDomainWithoutWWW } from "../utils";
-import { LOCALHOST_GEO_DATA, LOCALHOST_IP } from "../utils/geo";
+import { LOCALHOST_GEO_DATA } from "../utils/geo";
 
 export async function recordLinkView({
   req,
@@ -40,8 +39,6 @@ export async function recordLinkView({
     return null;
   }
 
-  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
   // get continent, region & geolocation data
   // interesting, geolocation().region is Vercel's edge region – NOT the actual region
   // so we use the x-vercel-ip-country-region or geolocation().countryRegion to get the actual region
@@ -55,8 +52,6 @@ export async function recordLinkView({
 
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
-
-  const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const referer = req.headers.get("referer");
   const refererDomain = referer ? getDomainWithoutWWW(referer) : "(direct)";
@@ -88,11 +83,6 @@ export async function recordLinkView({
     bot: ua.isBot,
     referer: refererDomain,
     referer_url: referer || "(direct)",
-    ip_address:
-      // only record IP if it's a valid IP and not from a EU country
-      typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
-        ? ip
-        : null,
   };
 
   const locationData = {
@@ -103,8 +93,8 @@ export async function recordLinkView({
   };
 
   const [, ,] = await Promise.all([
-    // record link view in Tinybird
-    recordLinkViewTB(clickData),
+    // record the link open in Postgres (no IP address is stored)
+    recordLinkViewEvent(clickData),
 
     // send email notification
     enableNotification ? sendNotification({ viewId, locationData }) : null,

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-import { PlanEnum } from "@/ee/stripe/constants";
 import { differenceInDays, format, startOfDay, subDays } from "date-fns";
 import { CalendarIcon, ChevronDown, CrownIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -8,7 +7,6 @@ import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -208,23 +206,19 @@ export function TimeRangeSelect<T extends TimeRange>({
           <div className="flex flex-col gap-2">
             <div className="grid gap-1">
               {ranges.map((range) => {
-                if (isPremium || range.value !== "custom") {
-                  return (
-                    <Button
-                      key={range.value}
-                      variant={range.value === value ? "secondary" : "ghost"}
-                      className="justify-between"
-                      onClick={() => handleSelectOption(range.value)}
-                    >
-                      <span>{range.label}</span>
-                      {/* <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                        {range.shortcut}
-                      </kbd> */}
-                    </Button>
-                  );
-                } else {
-                  return <UpgradeButton key={range.value} />;
-                }
+                return (
+                  <Button
+                    key={range.value}
+                    variant={range.value === value ? "secondary" : "ghost"}
+                    className="justify-between"
+                    onClick={() => handleSelectOption(range.value)}
+                  >
+                    <span>{range.label}</span>
+                    {/* <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                      {range.shortcut}
+                    </kbd> */}
+                  </Button>
+                );
               })}
             </div>
           </div>
@@ -234,25 +228,3 @@ export function TimeRangeSelect<T extends TimeRange>({
   );
 }
 
-const UpgradeButton = () => {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <Button
-        variant="ghost"
-        className="justify-between text-muted-foreground"
-        onClick={() => setOpen(true)}
-        title="Upgrade to view data beyond 30 days"
-      >
-        Custom Date <CrownIcon className="!size-4" />
-      </Button>
-      <UpgradePlanModal
-        clickedPlan={PlanEnum.Pro}
-        trigger="dashboard_time_range_custom_select"
-        open={open}
-        setOpen={setOpen}
-      />
-    </>
-  );
-};

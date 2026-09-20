@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth/next";
 
 import { enforceDocumentMemberScope } from "@/lib/api/rbac/guard";
 import prisma from "@/lib/prisma";
-import { getVideoEventsByDocument } from "@/lib/tinybird/pipes";
+import { getVideoEventsByDocument } from "@/lib/events";
 import { CustomUser } from "@/lib/types";
 import {
   countablePlaybackEvents,
@@ -155,13 +155,13 @@ export default async function handle(
     const videoLength = document.versions[0]?.length ?? 0;
 
     try {
-      // Fetch video events from Tinybird
+      // Fetch video events from the analytics tables
       const response = await getVideoEventsByDocument({
         document_id: documentId,
       });
 
       if (!response || !response.data) {
-        console.error("Invalid response from Tinybird:", response);
+        console.error("Invalid response from the analytics tables:", response);
         return res
           .status(500)
           .json({ message: "Invalid response from analytics service" });
@@ -178,7 +178,7 @@ export default async function handle(
       const analytics = calculateAnalytics(response.data, videoLength);
       return res.status(200).json(analytics);
     } catch (error) {
-      console.error("Tinybird error details:", {
+      console.error("Video analytics error details:", {
         error,
         message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,

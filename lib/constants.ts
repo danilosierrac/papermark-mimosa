@@ -69,6 +69,8 @@ export const LIMITS = {
 // the limit without pulling `sanitize-html` into the browser/SSR bundle.
 export const MAX_MESSAGE_LENGTH = 4000;
 
+// Office formats (doc/docx/ppt/pptx/keynote/odt/rtf) are not listed: their
+// PDF conversion was part of the removed commercial code. Upload PDFs instead.
 export const SUPPORTED_DOCUMENT_MIME_TYPES = [
   "application/pdf", // .pdf
   "application/vnd.ms-excel", // .xls
@@ -78,16 +80,6 @@ export const SUPPORTED_DOCUMENT_MIME_TYPES = [
   "text/csv", // .csv
   "text/tab-separated-values", // .tsv
   "application/vnd.oasis.opendocument.spreadsheet", // .ods
-  "application/vnd.ms-powerpoint", // .ppt
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .pptx
-  "application/vnd.oasis.opendocument.presentation", // .odp
-  "application/vnd.apple.keynote", // .key
-  "application/x-iwork-keynote-sffkey", // .key (older format)
-  "application/msword", // .doc
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-  "application/vnd.oasis.opendocument.text", // .odt
-  "application/rtf", // .rtf
-  "text/rtf", // .rtf
   "text/plain", // .txt, .log, .err, .prj, .jgw, .cpg
   "text/markdown", // .md
   "image/vnd.dwg", // .dwg

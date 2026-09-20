@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { DocumentVersion } from "@prisma/client";
 import {
   AlertTriangleIcon,
@@ -53,7 +52,6 @@ import { BadgeTooltip } from "@/components/ui/tooltip";
 
 import { Badge } from "@/components/ui/badge";
 
-import { UpgradePlanModal } from "../billing/upgrade-plan-modal";
 import { Pagination } from "../documents/pagination";
 import { Button } from "../ui/button";
 import {
@@ -151,7 +149,7 @@ export default function VisitorsTable({
       : undefined,
   );
   const { plan, isTrial, isPaused } = usePlan();
-  const isFreePlan = plan === "free";
+  const isFreePlan = false;
 
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -287,57 +285,7 @@ export default function VisitorsTable({
                   </TableCell>
                 </TableRow>
               )}
-            {views?.hiddenViewCount! > 0 && (
-              <>
-                <TableRow className="">
-                  <TableCell colSpan={5} className="text-left sm:text-center">
-                    {isPaused &&
-                    views?.hiddenFromPause &&
-                    views.hiddenFromPause > 0 ? (
-                      // Show pause-specific message if team is paused and has hidden views from pause
-                      <div className="flex flex-col items-start justify-center gap-2 sm:flex-row sm:items-center">
-                        <span className="flex items-center gap-x-1">
-                          <AlertTriangleIcon className="inline-block h-4 w-4 text-orange-500" />
-                          {views.hiddenFromPause} visit
-                          {views.hiddenFromPause !== 1 ? "s" : ""} occurred
-                          after your team was paused and{" "}
-                          {views.hiddenFromPause !== 1 ? "are" : "is"}{" "}
-                          hidden.{" "}
-                        </span>
-                        <Link
-                          href="/settings/billing"
-                          className="font-medium text-orange-600 underline hover:text-orange-700"
-                        >
-                          Unpause subscription to see all visits
-                        </Link>
-                      </div>
-                    ) : (
-                      // Show regular free plan message
-                      <div className="flex flex-col items-start justify-center gap-1 sm:flex-row sm:items-center">
-                        <span className="flex items-center gap-x-1">
-                          <AlertTriangleIcon className="inline-block h-4 w-4 text-yellow-500" />
-                          Some older visits may not be shown because your
-                          document has more than 20 views.{" "}
-                        </span>
-                        <UpgradePlanModal
-                          clickedPlan={
-                            isTrial ? PlanEnum.Business : PlanEnum.Pro
-                          }
-                          trigger=""
-                        >
-                          <button className="underline hover:text-gray-800">
-                            Upgrade to see full history
-                          </button>
-                        </UpgradePlanModal>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-                {Array.from({ length: views?.hiddenViewCount! }).map((_, i) => (
-                  <VisitorBlurred key={i} />
-                ))}
-              </>
-            )}
+            
             {views?.viewsWithDuration ? (
               views.viewsWithDuration.map((view) => {
                 if (view.isArchived) {

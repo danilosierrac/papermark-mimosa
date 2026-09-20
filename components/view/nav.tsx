@@ -3,9 +3,7 @@ import { useRouter } from "next/router";
 
 import React, { useEffect, useState } from "react";
 
-import { useViewerChatSafe } from "@/ee/features/ai/components/viewer-chat-provider";
-import { resolveBrandLogo } from "@/ee/features/branding/lib/brand-logo";
-import { useConversationSidebarSafe } from "@/ee/features/conversations/components/viewer/conversation-sidebar-provider";
+import { resolveBrandLogo } from "@/lib/brand/brand-logo";
 import { Brand, DataroomBrand } from "@prisma/client";
 import {
   ArrowUpRight,
@@ -52,7 +50,6 @@ import {
 } from "../ui/breadcrumb";
 import { Button } from "../ui/button";
 import { AnnotationToggle } from "./annotations/annotation-toggle";
-import { ConversationSidebar } from "./conversations/sidebar";
 import ReportForm from "./report-form";
 
 export type TNavData = {
@@ -104,18 +101,6 @@ export default function Nav({
   const router = useRouter();
   const asPath = router.asPath;
   const { previewToken, preview } = router.query;
-
-  // Get chat context to adjust navbar when chat is open
-  const chatContext = useViewerChatSafe();
-  const isChatOpen = chatContext?.isOpen && chatContext?.isEnabled;
-
-  // Read the Q&A sidebar's open state from the same context that drives the
-  // content padding (ConversationSidebarLayout). Using this instead of the
-  // local `showConversations` keeps the navbar's counter-margin in lockstep
-  // with the padding — both flip in one commit — so the navbar doesn't jump
-  // while the panel opens/closes.
-  const conversationSidebar = useConversationSidebarSafe();
-  const isConversationSidebarOpen = !!conversationSidebar?.isOpen;
 
   const {
     linkId,
@@ -269,12 +254,6 @@ export default function Nav({
       className="transition-[margin] duration-300 ease-in-out"
       style={{
         backgroundColor: brandColor,
-        // The chat / Q&A panel shifts the content by padding the parent
-        // (transition-all duration-300). We cancel that padding with a
-        // matching-easing negative margin so the navbar stays full-width and
-        // visually static instead of jumping while the transition runs.
-        marginRight:
-          isChatOpen || isConversationSidebarOpen ? "-400px" : undefined,
       }}
     >
       <div
@@ -371,14 +350,6 @@ export default function Nav({
               </TooltipProvider>
             )}
             {/* Conversation toggle button for dataroom documents */}
-            {isDataroom && conversationsEnabled && (
-              <Button
-                onClick={() => setShowConversations(!showConversations)}
-                className="bg-gray-900 text-white hover:bg-gray-900/80"
-              >
-                {t("nav.viewQA", "View Q&A")}
-              </Button>
-            )}
             {/* Annotations toggle button */}
             {onToggleAnnotations && annotationsFeatureEnabled && (
               <AnnotationToggle
@@ -565,21 +536,6 @@ export default function Nav({
           </div>
         </div>
       </div>
-      {isDataroom && conversationsEnabled ? (
-        <ConversationSidebar
-          dataroomId={dataroomId}
-          documentId={documentId}
-          documentName={documentName}
-          dataroomName={dataroomName}
-          pageNumber={pageNumber}
-          viewId={viewId || ""}
-          viewerId={viewerId}
-          linkId={linkId!}
-          isEnabled={true}
-          isOpen={showConversations}
-          onOpenChange={setShowConversations}
-        />
-      ) : null}
     </nav>
   );
 }

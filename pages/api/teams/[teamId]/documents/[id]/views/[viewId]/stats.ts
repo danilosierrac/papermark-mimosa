@@ -6,7 +6,7 @@ import { getServerSession } from "next-auth/next";
 import { enforceDocumentMemberScope } from "@/lib/api/rbac/guard";
 import { errorhandler } from "@/lib/errorHandler";
 import prisma from "@/lib/prisma";
-import { getViewPageDuration } from "@/lib/tinybird";
+import { getViewPageDuration } from "@/lib/events";
 import { CustomUser } from "@/lib/types";
 
 export default async function handle(

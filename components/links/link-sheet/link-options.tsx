@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-import ConfidentialViewSection from "@/ee/features/permissions/components/confidential-view/confidential-view-section";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { LinkAudienceType, LinkType } from "@prisma/client";
 import { LinkPreset } from "@prisma/client";
 import { ChevronDown } from "lucide-react";
@@ -11,7 +9,6 @@ import { usePlan } from "@/lib/swr/use-billing";
 import useLimits from "@/lib/swr/use-limits";
 import { cn } from "@/lib/utils";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { DEFAULT_LINK_TYPE } from "@/components/links/link-sheet";
 import AllowBlockListSection from "@/components/links/link-sheet/allow-block-list-section";
 import AllowDownloadSection from "@/components/links/link-sheet/allow-download-section";
@@ -34,14 +31,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import AgreementSection from "./agreement-section";
-import AIAgentsSection from "./ai-agents-section";
-import { BrandSection } from "./brand-section";
-import ConversationSection from "./conversation-section";
 import CustomFieldsSection from "./custom-fields-section";
-import IndexFileSection from "./index-file-section";
 import QuestionSection from "./question-section";
 import ScreenshotProtectionSection from "./screenshot-protection-section";
-import UploadSection from "./upload-section";
 import WatermarkSection from "./watermark-section";
 import { WelcomeMessageSection } from "./welcome-message-section";
 
@@ -149,7 +141,6 @@ export const LinkOptions = ({
 
   const [openUpgradeModal, setOpenUpgradeModal] = useState<boolean>(false);
   const [trigger, setTrigger] = useState<string>("");
-  const [upgradePlan, setUpgradePlan] = useState<PlanEnum>(PlanEnum.Business);
   const [highlightItem, setHighlightItem] = useState<string[]>([]);
 
   const handleUpgradeStateChange = ({
@@ -160,9 +151,6 @@ export const LinkOptions = ({
   }: LinkUpgradeOptions) => {
     setOpenUpgradeModal(state);
     setTrigger(trigger);
-    if (plan) {
-      setUpgradePlan(plan as PlanEnum);
-    }
     setHighlightItem(highlightItem || []);
   };
 
@@ -184,11 +172,6 @@ export const LinkOptions = ({
           isDatarooms ||
           isDataroomsPlus
         }
-        handleUpgradeStateChange={handleUpgradeStateChange}
-      />
-      <ConfidentialViewSection
-        {...{ data, setData }}
-        isAllowed={isTrial || isBusiness || isDatarooms || isDataroomsPlus}
         handleUpgradeStateChange={handleUpgradeStateChange}
       />
       <WatermarkSection
@@ -324,12 +307,7 @@ export const LinkOptions = ({
         defaultOpen={defaultExpandSections}
       >
         <div>
-          <BrandSection
-            data={data}
-            setData={setData}
-            linkType={linkType}
-            dataroomId={linkType === "DATAROOM_LINK" ? targetId : undefined}
-          />
+          
           <CustomFieldsSection
             {...{ data, setData }}
             isAllowed={
@@ -376,67 +354,8 @@ export const LinkOptions = ({
         </div>
       </CollapsibleSection>
 
-      {/* Advanced Section */}
-      {showAdvancedControls && (
-        <CollapsibleSection
-          title="Advanced controls"
-          defaultOpen={defaultExpandSections}
-        >
-          <div>
-            {/* AI Agents - Available for both document and dataroom links */}
-            <AIAgentsSection
-              {...{ data, setData }}
-              isAllowed={
-                isTrial || isBusiness || isDatarooms || isDataroomsPlus
-              }
-              handleUpgradeStateChange={handleUpgradeStateChange}
-            />
+      
 
-            {/* Dataroom-specific options */}
-            {linkType === LinkType.DATAROOM_LINK ? (
-              <>
-                {targetId ? (
-                  <UploadSection
-                    {...{ data, setData }}
-                    isAllowed={
-                      isTrial ||
-                      isDataroomsPlus ||
-                      (isDatarooms && limits?.dataroomUpload === true)
-                    }
-                    handleUpgradeStateChange={handleUpgradeStateChange}
-                    targetId={targetId}
-                  />
-                ) : null}
-
-                <IndexFileSection
-                  {...{ data, setData }}
-                  isAllowed={isTrial || isDataroomsPlus}
-                  handleUpgradeStateChange={handleUpgradeStateChange}
-                />
-
-                <ConversationSection
-                  {...{ data, setData }}
-                  isAllowed={
-                    isTrial ||
-                    isDataroomsPlus ||
-                    ((isBusiness || isDatarooms) &&
-                      !!limits?.conversationsInDataroom)
-                  }
-                  handleUpgradeStateChange={handleUpgradeStateChange}
-                />
-              </>
-            ) : null}
-          </div>
-        </CollapsibleSection>
-      )}
-
-      <UpgradePlanModal
-        clickedPlan={upgradePlan}
-        open={openUpgradeModal}
-        setOpen={setOpenUpgradeModal}
-        trigger={trigger}
-        highlightItem={highlightItem}
-      />
     </div>
   );
 };

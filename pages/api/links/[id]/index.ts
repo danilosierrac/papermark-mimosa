@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { resolveOwnedBrandId } from "@/ee/features/branding/lib/resolve-base-brand";
+import { resolveOwnedBrandId } from "@/lib/brand/resolve-brand";
 import { LinkAudienceType } from "@prisma/client";
 import { customAlphabet } from "nanoid";
 import { getServerSession } from "next-auth/next";

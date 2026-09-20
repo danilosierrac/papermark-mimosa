@@ -11,7 +11,7 @@ import {
   getTotalLinkDuration,
   getTotalViewerDuration,
   getViewPageDuration,
-} from "@/lib/tinybird/pipes";
+} from "@/lib/events";
 import { CustomUser } from "@/lib/types";
 import { durationFormat } from "@/lib/utils";
 
@@ -346,7 +346,7 @@ export default async function handler(
                   avgDuration = durationFormat(avgDurationMs);
                 }
               } catch (error) {
-                console.error("Error fetching Tinybird data:", error);
+                console.error("Error fetching analytics data:", error);
               }
             }
 
@@ -435,7 +435,7 @@ export default async function handler(
                 avgDuration = durationFormat(avgDurationMs);
               }
             } catch (error) {
-              console.error("Error fetching Tinybird data:", error);
+              console.error("Error fetching analytics data:", error);
             }
 
             return {
@@ -526,7 +526,7 @@ export default async function handler(
                 totalDuration = durationData.data[0].sum_duration;
               }
             } catch (error) {
-              console.error("Error fetching Tinybird data:", error);
+              console.error("Error fetching analytics data:", error);
             }
 
             // Get the name from the most recent view that has a name
@@ -647,7 +647,7 @@ export default async function handler(
                     : 0;
                 }
               } catch (error) {
-                console.error("Error fetching Tinybird data:", error);
+                console.error("Error fetching analytics data:", error);
               }
             }
 

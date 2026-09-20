@@ -1,66 +1,58 @@
 # papermark-mimosa
 
-A fork of [Papermark](https://github.com/mfts/papermark), the open-source DocSend
-alternative, for **mimosa GmbH**'s internal document-sharing use — proposals, budgets,
-agreements sent to our own clients. This fork exists to meet AGPLv3 §13 (Remote Network
-Interaction) by construction: if we run a modified version of this software as a network
-service, the modified source is offered to users interacting with it remotely by simply
-being here, publicly, rather than served on request from inside the running app.
+A minimal, self-hosted take on Papermark for sharing documents with clients.
 
 Upstream's own README is preserved at [`README.upstream.md`](README.upstream.md).
 
-## What this fork is for
+## What it does
 
-Papermark's `ee/` and `app/(ee)/` directories are under a separate Commercial License
-(see `LICENSE`, `ee/LICENSE.md`) — Data Rooms, SAML/SCIM, workflows, AI chat, billing.
-This fork keeps only what's licensed as AGPLv3 (the code outside those two directories)
-and everything that follows from that choice.
+- Share a document by link.
+- See who opened it, when, and how long they spent on each page.
+- Get told by email when a document is opened.
+- Track downloads.
+- E-signature via Documenso. Coming: the client already exists in the code and defaults to Documenso's hosted service, it is not yet pointed at a self-hosted instance.
 
-**No commercially-licensed code is present in this repository.**
+## What it leaves out
 
-## The plan (current status: scoped, not yet built)
+Data rooms, SSO, workflows, AI chat, billing, and third party analytics. It keeps the core and removes the rest, so the whole thing can run on one Postgres database and one object store.
 
-Full detail, cost estimates, and the reasoning behind each choice live in mimosa's own
-working notes (`REPORTS/papermark-test.md` in the `mimosa-gsc` repo — internal, not
-public). Summary:
+## How the analytics work
 
-### 1. Strip `ee/` and `app/(ee)/`
-Both directories are deleted entirely — no commercially-licensed file is present in this
-repo. 28 core files import small utilities from those directories (rate limiting, brand
-resolution, billing-pause checks); each import is either removed (if the feature it
-supports — data rooms, SAML/SCIM, workflows, AI chat, billing — is dropped) or the small
-utility is re-implemented directly in the surviving core code.
+Every page view, link open, click, video play, and webhook delivery is an event row in Postgres. No IP addresses are stored. Events are kept for twelve months, then deleted (`EVENT_RETENTION_DAYS` to override). From these rows: per-page view duration, completion rate, downloads, and the per-link visitor list.
 
-### 2. View tracking without Tinybird
-Tinybird (page-by-page view analytics) is a third-party hosted dependency we don't want.
-Replaced with our own Postgres: two models for view/duration and click events, a small
-ingest route per event type, and the ~16 read queries ported 1:1 (Tinybird's own SQL for
-this feature is already plain `SELECT`/`GROUP BY`/`SUM`/`COUNT DISTINCT` — no ClickHouse-
-specific function beyond one, itself unnecessary at this scale). Optionally: one aggregate
-event per document view forwarded to our own existing analytics pipeline.
+## Running it
 
-### 3. E-signature via self-hosted Documenso
-`lib/signing/` is host-agnostic (plain env vars for the API host/key) and defaults to
-Documenso's hosted SaaS — this fork points it at our **own self-hosted Documenso instance**
-instead (Documenso is itself a separate, AGPL, properly self-hostable project). No code
-change needed in this repo for that switch, only configuration.
+Env vars that matter now:
 
-### 4. Storage, email, login
-S3-compatible object storage (self-hosted, not a third-party bucket), Google OAuth via our
-own Workspace (no Hanko/passkey SaaS), and email via our own Workspace SMTP relay (no
-Resend account) — all templates kept, only the transport adapter changes.
+- `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
+- `POSTGRES_PRISMA_URL`, `POSTGRES_PRISMA_URL_NON_POOLING`
+- `BLOB_READ_WRITE_TOKEN`, or the `NEXT_PRIVATE_UPLOAD_*` vars for S3
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+- `RESEND_API_KEY`
+- `EVENT_RETENTION_DAYS`, optional, defaults to 365
 
-### 5. Re-skin
-Typography, color and layout brought in line with mimosa's own design system — scoped
-separately, after the above is working.
+```bash
+npm install
+npx prisma generate
+npx prisma migrate deploy   # includes prisma/migrations/20260920000000_postgres_view_events
+npm run dev
+```
 
-## License
+Copy `.env.example` to `.env` and fill it in. No `.env` file is ever committed.
 
-- Everything in this repository, having had `ee/` and `app/(ee)/` removed, is licensed
-  under **AGPLv3** — see `LICENSE`.
-- This is a fork of a copyrighted work; the original copyright notices and the full AGPLv3
-  text are preserved in `LICENSE`.
-- This repository is maintained for mimosa GmbH's own internal use. It is public because
-  AGPLv3 §13 asks that a modified version's source be available to anyone interacting
-  with it over a network — publishing the fork here satisfies that plainly, rather than
-  building a separate "source available on request" mechanism into the running app.
+The retention cleanup runs once a day: either the trigger.dev schedule `cleanup-view-events` (`lib/trigger/cleanup-view-events.ts`, 03:00 UTC), or, without trigger.dev, `npx tsx scripts/cleanup-view-events.ts` from cron on a host with database access.
+
+## Licence
+
+This repository is licensed under AGPL-3.0, see `LICENSE`. The upstream directories under a separate licence, `ee/` and `app/(ee)/`, are not present here.
+
+## Roadmap
+
+- Documenso for signatures, self-hosted instead of the hosted default.
+- Storage, email, and login on our own services.
+- A mimosa re-skin.
+- A basic multi-document link.
+
+## Credits
+
+A fork of [Papermark](https://github.com/mfts/papermark) by mfts. Upstream README preserved at [`README.upstream.md`](README.upstream.md).

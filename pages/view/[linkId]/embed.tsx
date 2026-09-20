@@ -6,7 +6,6 @@ import { useAnalytics } from "@/lib/analytics";
 import { useUrlPasscode } from "@/lib/hooks/use-url-passcode";
 
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import DataroomView from "@/components/view/dataroom/dataroom-view";
 import DocumentView from "@/components/view/document-view";
 import { ViewerI18nProvider } from "@/components/view/viewer-i18n-provider";
 import { ViewerNotFound } from "@/components/view/viewer-not-found";
@@ -127,54 +126,6 @@ function EmbedPageInner(props: ViewPageProps) {
     );
   }
 
-  // Render the dataroom view for DATAROOM_LINK
-  if (linkType === "DATAROOM_LINK") {
-    const { link } = props.linkData;
-    if (!link || router.isFallback) {
-      return (
-        <div className="flex h-screen items-center justify-center">
-          <LoadingSpinner className="h-20 w-20" />
-        </div>
-      );
-    }
-
-    const {
-      expiresAt,
-      emailProtected,
-      emailAuthenticated,
-      password: linkPassword,
-      enableAgreement,
-      isArchived,
-    } = link;
-
-    // If the link is expired, show a 404 page
-    if (expiresAt && new Date(expiresAt) < new Date()) {
-      return <ViewerNotFound reason="expired" />;
-    }
-
-    if (isArchived) {
-      return <ViewerNotFound reason="archived" />;
-    }
-
-    return (
-      <div className="h-screen w-full overflow-hidden">
-        <DataroomView
-          link={link}
-          userEmail={verifiedEmail}
-          userId={null}
-          isProtected={!!(emailProtected || linkPassword || enableAgreement)}
-          brand={brand}
-          previewToken={previewToken}
-          disableEditEmail={!!disableEditEmail}
-          urlPasscode={urlPasscode}
-          disableEditPassword={disableEditPassword}
-          hideFooterOnAccessForm={props.hideFooterOnAccessForm}
-          verifiedEmail={verifiedEmail}
-          isEmbedded
-        />
-      </div>
-    );
-  }
 }
 
 export default function EmbedPage(props: ViewPageProps) {

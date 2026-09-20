@@ -3,7 +3,6 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import React from "react";
 
-import { ConfidentialViewOverlay } from "@/ee/features/permissions/components/confidential-view/confidential-view-overlay";
 import { Slash } from "lucide-react";
 import { ExtendedRecordMap } from "notion-types";
 import { useQueryState } from "nuqs";

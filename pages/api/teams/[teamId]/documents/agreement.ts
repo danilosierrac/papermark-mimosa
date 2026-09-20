@@ -6,7 +6,6 @@ import { getServerSession } from "next-auth/next";
 
 import { errorhandler } from "@/lib/errorHandler";
 import prisma from "@/lib/prisma";
-import type { convertFilesToPdfTask } from "@/ee/features/conversions/lib/trigger/convert-files";
 import { convertPdfToImageRoute } from "@/lib/trigger/pdf-to-image-route";
 import { CustomUser } from "@/lib/types";
 import { getExtension, log, serializeFileSize } from "@/lib/utils";
@@ -135,26 +134,6 @@ export default async function handle(
       const isDownloadOnlyByExtension =
         /\.(log|err|prj|jgw|tif|tiff|ecw|bak)$/i.test(name);
 
-      if (type === "docs" && !isDownloadOnlyByExtension) {
-        await tasks.trigger<typeof convertFilesToPdfTask>(
-          "convert-files-to-pdf",
-          {
-            documentId: document.id,
-            documentVersionId: document.versions[0].id,
-            teamId,
-          },
-          {
-            idempotencyKey: `${teamId}-${document.versions[0].id}-docs`,
-            tags: [
-              `team_${teamId}`,
-              `document_${document.id}`,
-              `version:${document.versions[0].id}`,
-            ],
-            queue: conversionQueueName(team.plan),
-            concurrencyKey: teamId,
-          },
-        );
-      }
 
       if (type === "pdf") {
         await convertPdfToImageRoute.trigger(

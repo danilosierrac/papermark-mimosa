@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 
 import React, { useEffect, useRef, useState } from "react";
 
-import { ConfidentialViewOverlay } from "@/ee/features/permissions/components/confidential-view/confidential-view-overlay";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
@@ -1020,12 +1019,6 @@ export default function PagesHorizontalViewer({
           ) : null}
 
           {screenshotProtectionEnabled ? <ScreenProtector /> : null}
-          {confidentialViewEnabled ? (
-            <ConfidentialViewOverlay
-              navbarAbove={!isPseudoFullscreen && rotation === 0}
-              rotation={rotation}
-            />
-          ) : null}
           {showPoweredByBanner ? <PoweredBy linkId={linkId} /> : null}
           <AwayPoster
             isVisible={isInactive}

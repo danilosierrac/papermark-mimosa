@@ -9,7 +9,6 @@ import {
 } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { Domain, LinkType } from "@prisma/client";
 import { ShuffleIcon } from "lucide-react";
 import { customAlphabet } from "nanoid";
@@ -20,7 +19,6 @@ import { BasePlan, usePlan } from "@/lib/swr/use-billing";
 import useLimits from "@/lib/swr/use-limits";
 import { cn } from "@/lib/utils";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { AddDomainModal } from "@/components/domains/add-domain-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -380,19 +378,6 @@ export default function DomainSection({
       />
 
       {/* Upgrade plan modal when trying to use custom domains without the right plan */}
-      <UpgradePlanModal
-        clickedPlan={
-          linkType === "DATAROOM_LINK" ? PlanEnum.DataRooms : PlanEnum.Business
-        }
-        open={isUpgradeModalOpen}
-        setOpen={setUpgradeModalOpen}
-        trigger={
-          linkType === "DATAROOM_LINK"
-            ? "select_custom_domain_dataroom"
-            : "select_custom_domain_document"
-        }
-        highlightItem={["custom-domain"]}
-      />
     </>
   );
 }

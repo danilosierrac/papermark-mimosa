@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ["js", "jsx", "ts", "tsx", "mdx"],
-  transpilePackages: ["@boxyhq/saml-jackson", "@libpdf/core"],
+  transpilePackages: ["@libpdf/core"],
   images: {
     minimumCacheTTL: 2592000, // 30 days
     remotePatterns: prepareRemotePatterns(),
@@ -150,23 +150,21 @@ const nextConfig = {
         source: "/",
         destination: "/dashboard",
         permanent: false,
-        has: [
-          {
-            type: "host",
-            value: process.env.NEXT_PUBLIC_APP_BASE_HOST,
-          },
-        ],
+        // Scope to the app host when one is configured; otherwise apply to all.
+        ...(process.env.NEXT_PUBLIC_APP_BASE_HOST
+          ? {
+              has: [
+                {
+                  type: "host",
+                  value: process.env.NEXT_PUBLIC_APP_BASE_HOST,
+                },
+              ],
+            }
+          : {}),
       },
       {
         source: "/settings",
         destination: "/settings/general",
-        permanent: false,
-      },
-      {
-        // The plan picker moved to /settings/billing/upgrade (App Router).
-        // Keep the old path working for bookmarks and previously sent emails.
-        source: "/settings/upgrade",
-        destination: "/settings/billing/upgrade",
         permanent: false,
       },
       {
@@ -283,21 +281,27 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: "/services/:path*",
-        has: [
-          {
-            type: "host",
-            value: process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST,
-          },
-        ],
-        headers: [
-          {
-            key: "X-Robots-Tag",
-            value: "noindex",
-          },
-        ],
-      },
+      // Only when incoming webhooks run on their own host; a `has` rule
+      // without a value fails the build.
+      ...(process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST
+        ? [
+            {
+              source: "/services/:path*",
+              has: [
+                {
+                  type: "host",
+                  value: process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST,
+                },
+              ],
+              headers: [
+                {
+                  key: "X-Robots-Tag",
+                  value: "noindex",
+                },
+              ],
+            },
+          ]
+        : []),
       {
         source: "/api/webhooks/services/:path*",
         headers: [
@@ -330,15 +334,6 @@ const nextConfig = {
     ],
     outputFileTracingIncludes: {
       "/api/mupdf/*": ["./node_modules/mupdf/dist/*.wasm"],
-      // Jackson SAML routes need jose + openid-client for crypto
-      "/api/auth/saml/token": [
-        "./node_modules/jose/**/*",
-        "./node_modules/openid-client/**/*",
-      ],
-      "/api/auth/saml/userinfo": [
-        "./node_modules/jose/**/*",
-        "./node_modules/openid-client/**/*",
-      ],
     },
     missingSuspenseWithCSRBailout: false,
     // oidc-provider uses Koa which has dynamic requires that webpack can't
@@ -366,22 +361,8 @@ const nextConfig = {
       ...config.resolve.alias,
       "@google-cloud/kms": false,
       "@google-cloud/secret-manager": false,
-      // Jackson pulls TypeORM/Mongo optional drivers we don't use (Postgres-only setup).
-      // Aliasing prevents module resolution errors in dev/build.
-      mongodb: false,
-      mysql: false,
-      "react-native-sqlite-storage": false,
-      aws4: false,
-      "@sap/hana-client": false,
-      "@sap/hana-client/extension/Stream": false,
-      "hdb-pool": false,
     };
 
-    // Suppress critical dependency warnings from Jackson's dynamic requires
-    config.module = {
-      ...config.module,
-      exprContextCritical: false,
-    };
 
     return config;
   },

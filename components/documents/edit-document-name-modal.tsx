@@ -7,10 +7,6 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 
-import {
-  type DataroomFolderDocument,
-  type DataroomFolderWithDocuments,
-} from "@/lib/swr/use-dataroom";
 import { DocumentWithLinksAndLinkCountAndViewCount } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
@@ -24,88 +20,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-type DataroomIncludeDocumentsItem =
-  | DataroomFolderWithDocuments
-  | {
-      id: string;
-      folderId: string | null;
-      hierarchicalIndex: string | null;
-      document:
-        | {
-            id: string;
-            name: string;
-            type: string;
-          }
-        | null
-        | undefined;
-    };
-
-function updateFolderDocumentsName(
-  folder: DataroomFolderWithDocuments,
-  docId: string,
-  newName: string,
-): DataroomFolderWithDocuments {
-  return {
-    ...folder,
-    documents: (folder.documents ?? []).map((doc) =>
-      doc.document.id === docId
-        ? { ...doc, document: { ...doc.document, name: newName } }
-        : doc,
-    ),
-    childFolders: (folder.childFolders ?? []).map((child) =>
-      updateFolderDocumentsName(child, docId, newName),
-    ),
-  };
-}
-
-function updateDocNameInDocuments(
-  docs: DataroomFolderDocument[] | undefined,
-  docId: string,
-  newName: string,
-): DataroomFolderDocument[] | undefined {
-  if (!docs) return docs;
-  return docs.map((doc) =>
-    doc.document.id === docId
-      ? { ...doc, document: { ...doc.document, name: newName } }
-      : doc,
-  );
-}
-
-function updateDocNameInFolderTree(
-  folders: DataroomFolderWithDocuments[] | undefined,
-  docId: string,
-  newName: string,
-): DataroomFolderWithDocuments[] | undefined {
-  if (!folders) return folders;
-  return folders.map((folder) =>
-    updateFolderDocumentsName(folder, docId, newName),
-  );
-}
-
-function updateDocNameInIncludeDocumentsTree(
-  items: DataroomIncludeDocumentsItem[] | undefined,
-  docId: string,
-  newName: string,
-): DataroomIncludeDocumentsItem[] | undefined {
-  if (!items) return items;
-
-  return items.map((item) => {
-    if ("document" in item) {
-      const { document } = item;
-
-      if (!document) {
-        return item;
-      }
-
-      return document.id === docId
-        ? { ...item, document: { ...document, name: newName } }
-        : item;
-    }
-
-    return updateFolderDocumentsName(item, docId, newName);
-  });
-}
 
 function updateDocNameInTeamDocuments(
   data:
@@ -258,42 +172,6 @@ export function EditDocumentNameModal({
         });
       }
 
-      if (dataroomId) {
-        const baseKey = `/api/teams/${teamId}/datarooms/${dataroomId}`;
-
-        mutate(`${baseKey}/documents`, null, {
-          populateCache: (_result, docs) =>
-            updateDocNameInDocuments(docs, documentId, trimmedName),
-          revalidate: false,
-        });
-
-        if (currentFolderPath?.length) {
-          mutate(
-            `${baseKey}/folder-documents/${currentFolderPath.join("/")}`,
-            null,
-            {
-              populateCache: (_result, docs) =>
-                updateDocNameInDocuments(docs, documentId, trimmedName),
-              revalidate: false,
-            },
-          );
-        }
-
-        mutate(`${baseKey}/folders`, null, {
-          populateCache: (_result, folders) =>
-            updateDocNameInFolderTree(folders, documentId, trimmedName),
-          revalidate: false,
-        });
-        mutate(`${baseKey}/folders?include_documents=true`, null, {
-          populateCache: (_result, items) =>
-            updateDocNameInIncludeDocumentsTree(
-              items,
-              documentId,
-              trimmedName,
-            ),
-          revalidate: false,
-        });
-      }
 
       setOpen(false);
     } catch {

@@ -10,13 +10,12 @@ import {
 import { useRouter } from "next/router";
 
 import { useTeam } from "@/context/team-context";
-import { FileTextIcon, ServerIcon, SnowflakeIcon } from "lucide-react";
+import { FileTextIcon } from "lucide-react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import useSWR from "swr";
 
 import { useAnalytics } from "@/lib/analytics";
-import useDataroomsSimple from "@/lib/swr/use-datarooms-simple";
 import { LinkWithViews } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 
@@ -31,8 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import { SingleSelect } from "@/components/ui/single-select";
 
-type TransferTargetType = "DOCUMENT" | "DATAROOM";
-
 type DocumentOption = { id: string; name: string };
 
 // Case-insensitive, digit-aware ordering so names like "File 2" sort before
@@ -43,46 +40,38 @@ function TransferLinkModal({
   showTransferLinkModal,
   setShowTransferLinkModal,
   link,
-  targetType,
 }: {
   showTransferLinkModal: boolean;
   setShowTransferLinkModal: Dispatch<SetStateAction<boolean>>;
   link: LinkWithViews | null;
-  targetType: "DOCUMENT" | "DATAROOM";
 }) {
   const router = useRouter();
   const teamInfo = useTeam();
   const teamId = teamInfo?.currentTeam?.id;
   const analytics = useAnalytics();
 
-  const [destinationType, setDestinationType] =
-    useState<TransferTargetType>(targetType);
   const [selectedTarget, setSelectedTarget] = useState<string>("");
   const [transferring, setTransferring] = useState<boolean>(false);
 
-  const currentTargetId = link?.documentId ?? link?.dataroomId ?? "";
+  const currentTargetId = link?.documentId ?? "";
 
   useEffect(() => {
     if (showTransferLinkModal) {
-      setDestinationType(targetType);
       setSelectedTarget("");
     }
-  }, [showTransferLinkModal, targetType, link?.id]);
+  }, [showTransferLinkModal, link?.id]);
 
-  // Documents are fetched on demand (only while the modal is open and the
-  // document destination is selected) to keep the picker scoped to documents
-  // the current team/member can access.
+  // Documents are fetched on demand (only while the modal is open) to keep
+  // the picker scoped to documents the current team/member can access.
   const { data: documentsData, isLoading: documentsLoading } = useSWR<{
     documents: DocumentOption[];
   }>(
-    showTransferLinkModal && destinationType === "DOCUMENT" && teamId
+    showTransferLinkModal && teamId
       ? `/api/teams/${teamId}/documents?sort=name&limit=1000`
       : null,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 30000 },
   );
-
-  const { datarooms, loading: dataroomsLoading } = useDataroomsSimple();
 
   const documentOptions = useMemo(() => {
     const docs = documentsData?.documents ?? [];
@@ -96,35 +85,8 @@ function TransferLinkModal({
       .sort((a, b) => a.label.localeCompare(b.label, undefined, byName));
   }, [documentsData, currentTargetId]);
 
-  const dataroomOptions = useMemo(() => {
-    return (datarooms ?? [])
-      .map((room) => ({
-        label: room.name,
-        value: room.id,
-        searchableText: room.name,
-        meta: {
-          isFrozen: room.isFrozen,
-          isCurrent: room.id === currentTargetId,
-        },
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label, undefined, byName));
-  }, [datarooms, currentTargetId]);
-
-  const isDocumentDestination = destinationType === "DOCUMENT";
-  const options = isDocumentDestination ? documentOptions : dataroomOptions;
-  const optionsLoading = isDocumentDestination
-    ? documentsLoading
-    : dataroomsLoading;
-
-  const isNoop =
-    destinationType === targetType && selectedTarget === currentTargetId;
-
+  const isNoop = selectedTarget === currentTargetId;
   const canSubmit = !!selectedTarget && !isNoop && !transferring;
-
-  const handleDestinationTypeChange = (type: TransferTargetType) => {
-    setDestinationType(type);
-    setSelectedTarget("");
-  };
 
   async function transferLink() {
     if (!link || !teamId || !selectedTarget) return;
@@ -136,7 +98,7 @@ function TransferLinkModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamId,
-          targetType: destinationType,
+          targetType: "DOCUMENT",
           targetId: selectedTarget,
         }),
       });
@@ -151,8 +113,8 @@ function TransferLinkModal({
       analytics.capture("Link Transferred", {
         teamId,
         linkId: link.id,
-        fromType: targetType,
-        toType: destinationType,
+        fromType: "DOCUMENT",
+        toType: "DOCUMENT",
         fromTargetId: currentTargetId,
         toTargetId: selectedTarget,
       });
@@ -161,26 +123,10 @@ function TransferLinkModal({
       // success regardless of whether the cache refresh below succeeds.
       setShowTransferLinkModal(false);
 
-      // Best-effort cache revalidation: drop the link from the current
-      // target's lists (and any group-scoped list) and prime the destination's
-      // list. A failed revalidation must not surface as a transfer failure.
-      const fromEndpoint = `${targetType.toLowerCase()}s`;
-      const toEndpoint = `${destinationType.toLowerCase()}s`;
       const revalidationKeys = [
-        `/api/teams/${teamId}/${fromEndpoint}/${encodeURIComponent(
-          currentTargetId,
-        )}/links`,
-        `/api/teams/${teamId}/${toEndpoint}/${encodeURIComponent(
-          selectedTarget,
-        )}/links`,
+        `/api/teams/${teamId}/documents/${encodeURIComponent(currentTargetId)}/links`,
+        `/api/teams/${teamId}/documents/${encodeURIComponent(selectedTarget)}/links`,
       ];
-      if (link.groupId) {
-        revalidationKeys.push(
-          `/api/teams/${teamId}/${fromEndpoint}/${encodeURIComponent(
-            currentTargetId,
-          )}/groups/${link.groupId}/links`,
-        );
-      }
       await Promise.allSettled(revalidationKeys.map((key) => mutate(key)));
     } finally {
       setTransferring(false);
@@ -200,76 +146,35 @@ function TransferLinkModal({
           <DialogDescription>
             Move{" "}
             <span className="font-medium text-foreground">{linkName}</span> to a
-            different document or data room. The link URL stays the same.
+            different document. The link URL stays the same.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant={isDocumentDestination ? "default" : "outline"}
-              className="justify-center gap-2"
-              onClick={() => handleDestinationTypeChange("DOCUMENT")}
-            >
-              <FileTextIcon className="h-4 w-4" />
-              Document
-            </Button>
-            <Button
-              type="button"
-              variant={!isDocumentDestination ? "default" : "outline"}
-              className="justify-center gap-2"
-              onClick={() => handleDestinationTypeChange("DATAROOM")}
-            >
-              <ServerIcon className="h-4 w-4" />
-              Data room
-            </Button>
-          </div>
-
           <SingleSelect
-            options={options}
+            options={documentOptions}
             value={selectedTarget}
             onValueChange={setSelectedTarget}
-            loading={optionsLoading}
-            placeholder={
-              isDocumentDestination
-                ? "Select a document"
-                : "Select a data room"
-            }
-            searchPlaceholder={
-              isDocumentDestination
-                ? "Search documents..."
-                : "Search data rooms..."
-            }
+            loading={documentsLoading}
+            placeholder="Select a document"
+            searchPlaceholder="Search documents..."
             triggerIcon={
-              isDocumentDestination ? (
-                <FileTextIcon className="!size-4 shrink-0 text-muted-foreground" />
-              ) : (
-                <ServerIcon className="!size-4 shrink-0 text-muted-foreground" />
-              )
+              <FileTextIcon className="!size-4 shrink-0 text-muted-foreground" />
             }
-            emptyText={
-              isDocumentDestination
-                ? "No documents found."
-                : "No data rooms found."
-            }
+            emptyText="No documents found."
             renderOption={(option) => (
               <span className="flex w-full items-center gap-1.5">
-                {option.meta?.isFrozen ? (
-                  <SnowflakeIcon className="h-3.5 w-3.5 shrink-0 text-blue-500" />
-                ) : null}
                 <span className="truncate">
                   {option.label}
                   {option.meta?.isCurrent ? " (current)" : ""}
-                  {option.meta?.isFrozen ? " (frozen)" : ""}
                 </span>
               </span>
             )}
           />
 
-          {isNoop ? (
+          {isNoop && selectedTarget ? (
             <p className="text-xs text-destructive">
-              The link already points to this {targetType.toLowerCase()}.
+              The link already points to this document.
             </p>
           ) : null}
 
@@ -279,14 +184,8 @@ function TransferLinkModal({
               <strong>
                 {viewCount} view{viewCount !== 1 ? "s" : ""}
               </strong>{" "}
-              stay attached to the previous{" "}
-              {targetType === "DATAROOM" ? "data room" : "document"} for
-              historical analytics. Going forward, visitors will see the new
-              target.
-            </p>
-            <p className="mt-2">
-              Data room settings don&apos;t carry over: visitor groups, file
-              permissions, and upload folders will be cleared.
+              stay attached to the previous document for historical analytics.
+              Going forward, visitors will see the new target.
             </p>
           </div>
         </div>
@@ -294,18 +193,13 @@ function TransferLinkModal({
         <DialogFooter>
           <Button
             onClick={async () => {
-              const destination = destinationType;
               const destinationId = selectedTarget;
               try {
                 await transferLink();
-                const targetPath =
-                  destination === "DATAROOM"
-                    ? `/datarooms/${destinationId}`
-                    : `/documents/${destinationId}`;
                 toast.success("Link transferred successfully!", {
                   action: {
                     label: "Open",
-                    onClick: () => router.push(targetPath),
+                    onClick: () => router.push(`/documents/${destinationId}`),
                   },
                 });
               } catch (err) {
@@ -328,10 +222,9 @@ function TransferLinkModal({
 
 export function useTransferLinkModal({
   link,
-  targetType,
 }: {
   link: LinkWithViews | null;
-  targetType: "DOCUMENT" | "DATAROOM";
+  targetType?: "DOCUMENT" | "DATAROOM";
 }) {
   const [showTransferLinkModal, setShowTransferLinkModal] = useState(false);
 
@@ -341,10 +234,9 @@ export function useTransferLinkModal({
         showTransferLinkModal={showTransferLinkModal}
         setShowTransferLinkModal={setShowTransferLinkModal}
         link={link}
-        targetType={targetType}
       />
     );
-  }, [showTransferLinkModal, link, targetType]);
+  }, [showTransferLinkModal, link]);
 
   return useMemo(
     () => ({

@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { isTeamPausedById } from "@/ee/features/billing/cancellation/lib/is-team-paused";
-import { getLimits } from "@/ee/limits/server";
-import { MultiRegionS3Store } from "@/ee/features/storage/s3-store";
+import { getLimits } from "@/lib/limits";
+import { createTusS3Store } from "@/lib/files/tus-s3-store";
 import { CopyObjectCommand } from "@aws-sdk/client-s3";
 import { Server } from "@tus/server";
 import { getServerSession } from "next-auth/next";
@@ -48,7 +47,7 @@ const tusServer = new Server({
   maxSize: 1024 * 1024 * 1024 * 2, // 2 GiB
   respectForwardedHeaders: true,
   locker,
-  datastore: new MultiRegionS3Store(),
+  datastore: createTusS3Store(),
   namingFunction(req, metadata) {
     const { teamId, fileName } = metadata as {
       teamId: string;
@@ -177,17 +176,8 @@ const tusServer = new Server({
       throw { status_code: 403, body: "Unauthorized to access this team" };
     }
 
-    const [limits, teamIsPaused] = await Promise.all([
-      getLimits({ teamId, userId }),
-      isTeamPausedById(teamId),
-    ]);
+    const limits = await getLimits({ teamId, userId });
 
-    if (teamIsPaused) {
-      throw {
-        status_code: 403,
-        body: "Team is currently paused. New document uploads are not available.",
-      };
-    }
 
     const documentLimit = limits.documents;
     if (

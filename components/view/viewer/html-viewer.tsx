@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 
 import { useEffect, useRef, useState } from "react";
 
-import { ConfidentialViewOverlay } from "@/ee/features/permissions/components/confidential-view/confidential-view-overlay";
 
 import { useSafePageViewTracker } from "@/lib/tracking/safe-page-view-tracker";
 import { getTrackingOptions } from "@/lib/tracking/tracking-config";
@@ -217,7 +216,6 @@ export default function HtmlViewer({
           allow=""
         />
         {screenshotProtectionEnabled && <ScreenProtector />}
-        {confidentialViewEnabled ? <ConfidentialViewOverlay /> : null}
       </div>
       <AwayPoster
         isVisible={isInactive}

@@ -2,7 +2,7 @@ import {
   type BrandLogoFields,
   type ResolvedBrandLogo,
   resolveBrandLogo,
-} from "@/ee/features/branding/lib/brand-logo";
+} from "@/lib/brand/brand-logo";
 
 import { redis } from "@/lib/redis";
 

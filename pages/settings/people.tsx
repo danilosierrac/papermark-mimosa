@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import {
   CircleHelpIcon,
   MoreHorizontalIcon,
@@ -18,7 +17,6 @@ import { mutate } from "swr";
 
 import { useAnalytics } from "@/lib/analytics";
 import { usePlan } from "@/lib/swr/use-billing";
-import useDataroomsSimple from "@/lib/swr/use-datarooms-simple";
 import { useInvitations } from "@/lib/swr/use-invitations";
 import useLimits from "@/lib/swr/use-limits";
 import { useGetTeam } from "@/lib/swr/use-team";
@@ -26,8 +24,6 @@ import { useTeams } from "@/lib/swr/use-teams";
 import { CustomUser, TeamRole } from "@/lib/types";
 import { cn, generateGravatarHash } from "@/lib/utils";
 
-import { AddSeatModal } from "@/components/billing/add-seat-modal";
-import { UnlimitedPlanModal } from "@/components/billing/unlimited-plan-modal";
 import AppLayout from "@/components/layouts/app";
 import { SettingsHeader } from "@/components/settings/settings-header";
 import { AddTeamMembers } from "@/components/teams/add-team-member-modal";
@@ -63,7 +59,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { BadgeTooltip } from "@/components/ui/tooltip";
-import { UpgradeButton } from "@/components/ui/upgrade-button";
 
 const ROLE_LABELS: Record<TeamRole, string> = {
   ADMIN: "Admin",
@@ -79,12 +74,7 @@ const ROLE_DESCRIPTIONS: Record<TeamRole, string> = {
   DATAROOM_MEMBER: "Access limited to the specific data rooms you assign.",
 };
 
-const ASSIGNABLE_ROLES: TeamRole[] = [
-  "ADMIN",
-  "MANAGER",
-  "MEMBER",
-  "DATAROOM_MEMBER",
-];
+const ASSIGNABLE_ROLES: TeamRole[] = ["ADMIN", "MANAGER", "MEMBER"];
 
 function formatRole(role: string): string {
   return ROLE_LABELS[role as TeamRole] ?? role;
@@ -93,7 +83,6 @@ function formatRole(role: string): string {
 export default function Billing() {
   const [isTeamMemberInviteModalOpen, setTeamMemberInviteModalOpen] =
     useState<boolean>(false);
-  const [isAddSeatModalOpen, setAddSeatModalOpen] = useState<boolean>(false);
   const [leavingUserId, setLeavingUserId] = useState<string>("");
 
   const { data: session } = useSession();
@@ -107,17 +96,6 @@ export default function Billing() {
   const { invitations } = useInvitations();
 
   const router = useRouter();
-
-  const { datarooms } = useDataroomsSimple();
-
-  // Map of dataroom id -> display name, for rendering assignment tags.
-  const dataroomNameById = useMemo(() => {
-    const map: Record<string, string> = {};
-    (datarooms ?? []).forEach((dataroom) => {
-      map[dataroom.id] = dataroom.internalName || dataroom.name;
-    });
-    return map;
-  }, [datarooms]);
 
   // Map of user id -> assigned dataroom ids (for DATAROOM_MEMBERs).
   const dataroomIdsByUser = useMemo(() => {
@@ -327,50 +305,26 @@ export default function Billing() {
                         {limits.usage?.users ?? 0}/{limits.users} seats used.{" "}
                       </span>
                     ) : null}
-                    <UnlimitedPlanModal>
-                      <span className="cursor-pointer underline underline-offset-4 hover:text-foreground">
-                        Need unlimited seats?
-                      </span>
-                    </UnlimitedPlanModal>
                   </>
                 )}
               </p>
             </div>
-            {showUpgradePlanModal ? (
-              <UpgradeButton
-                text="Invite Members"
-                clickedPlan={PlanEnum.Business}
-                trigger="invite_team_members"
-                highlightItem={["users"]}
-              />
-            ) : (
-              <div className="flex items-center gap-2">
-                {!isDataroomsUnlimited && (
-                  <AddSeatModal
-                    open={isAddSeatModalOpen}
-                    setOpen={setAddSeatModalOpen}
-                  >
-                    <Button variant="outline" className="whitespace-nowrap">
-                      Add Seat
-                    </Button>
-                  </AddSeatModal>
-                )}
-                {showInvite ? (
-                  <AddTeamMembers
-                    open={isTeamMemberInviteModalOpen}
-                    setOpen={setTeamMemberInviteModalOpen}
-                  >
-                    <Button className="bg-gray-900 text-gray-50 hover:bg-gray-900/90">
-                      Invite
-                    </Button>
-                  </AddTeamMembers>
-                ) : (
-                  <Button disabled title="Add a seat to invite more members">
+            <div className="flex items-center gap-2">
+              {showInvite ? (
+                <AddTeamMembers
+                  open={isTeamMemberInviteModalOpen}
+                  setOpen={setTeamMemberInviteModalOpen}
+                >
+                  <Button className="bg-gray-900 text-gray-50 hover:bg-gray-900/90">
                     Invite
                   </Button>
-                )}
-              </div>
-            )}
+                </AddTeamMembers>
+              ) : (
+                <Button disabled title="Add a seat to invite more members">
+                  Invite
+                </Button>
+              )}
+            </div>
           </div>
 
           {loading ? (
@@ -429,21 +383,7 @@ export default function Billing() {
                         <TableCell className="text-right text-sm text-gray-700 dark:text-gray-300">
                           <div className="flex flex-col items-end gap-1">
                             <span>{formatRole(member.role)}</span>
-                            {member.role === "DATAROOM_MEMBER" &&
-                            (dataroomIdsByUser[member.userId]?.length ?? 0) >
-                              0 ? (
-                              <div className="flex max-w-[240px] flex-wrap justify-end gap-1">
-                                {dataroomIdsByUser[member.userId].map((id) => (
-                                  <span
-                                    key={id}
-                                    className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-                                    title={dataroomNameById[id] || "Data room"}
-                                  >
-                                    {dataroomNameById[id] || "Data room"}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : null}
+                            
                             {member.status === "BLOCKED_TRIAL_EXPIRED" ? (
                               <span className="text-xs font-medium text-red-500">
                                 Blocked (Trial Expired)
@@ -707,7 +647,6 @@ function ChangeRoleDialog({
   onClose: () => void;
   onSave: (role: TeamRole, dataroomIds: string[]) => Promise<void>;
 }) {
-  const { datarooms } = useDataroomsSimple();
   const [role, setRole] = useState<TeamRole>(member.role);
   const [selected, setSelected] = useState<string[]>(currentAssignments);
   const [saving, setSaving] = useState(false);
@@ -768,43 +707,7 @@ function ChangeRoleDialog({
           ))}
         </RadioGroup>
 
-        {role === "DATAROOM_MEMBER" ? (
-          <div className="grid gap-1.5">
-            <div className="space-y-1">
-              <Label className="opacity-80">Data rooms</Label>
-              <p className="text-xs text-muted-foreground">
-                Select the data rooms {member.name} can manage.
-              </p>
-            </div>
-            <div className="max-h-44 space-y-0.5 overflow-y-auto rounded-md border p-1">
-              {datarooms && datarooms.length > 0 ? (
-                datarooms.map((dataroom) => (
-                  <div
-                    key={dataroom.id}
-                    className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
-                  >
-                    <Checkbox
-                      id={`role-dataroom-${dataroom.id}`}
-                      checked={selected.includes(dataroom.id)}
-                      onCheckedChange={() => toggle(dataroom.id)}
-                      className="h-4 w-4"
-                    />
-                    <label
-                      htmlFor={`role-dataroom-${dataroom.id}`}
-                      className="flex-1 cursor-pointer truncate"
-                    >
-                      {dataroom.internalName || dataroom.name}
-                    </label>
-                  </div>
-                ))
-              ) : (
-                <p className="px-2 py-1.5 text-sm text-muted-foreground">
-                  No data rooms available.
-                </p>
-              )}
-            </div>
-          </div>
-        ) : null}
+        
 
         <DialogFooter>
           <Button

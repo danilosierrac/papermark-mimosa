@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { isTeamPausedById } from "@/ee/features/billing/cancellation/lib/is-team-paused";
 
 import { sendViewedDataroomEmail } from "@/lib/emails/send-viewed-dataroom";
 import { sendViewedDataroomPausedEmail } from "@/lib/emails/send-viewed-dataroom-paused";
@@ -147,7 +146,6 @@ export default async function handle(
         .json({ message: "No recipients", viewId });
     }
 
-    const teamIsPaused = await isTeamPausedById(teamId);
     const primaryRecipient = recipients[0];
     const ccRecipients = recipients
       .slice(1)
@@ -155,7 +153,6 @@ export default async function handle(
 
     await sendImmediateEmail({
       view,
-      teamIsPaused,
       primaryRecipient,
       ccRecipients,
       linkName,
@@ -177,7 +174,6 @@ export default async function handle(
 
 async function sendImmediateEmail({
   view,
-  teamIsPaused,
   primaryRecipient,
   ccRecipients,
   linkName,
@@ -191,7 +187,6 @@ async function sendImmediateEmail({
     document: { id: string; name: string } | null;
     dataroom: { id: string; name: string } | null;
   };
-  teamIsPaused: boolean;
   primaryRecipient: NotificationRecipient;
   ccRecipients: string[];
   linkName: string;
@@ -199,14 +194,6 @@ async function sendImmediateEmail({
   locationString: string;
 }) {
   if (view.viewType === "DOCUMENT_VIEW") {
-    if (teamIsPaused) {
-      await sendViewedDocumentPausedEmail({
-        ownerEmail: primaryRecipient.email,
-        documentName: view.document!.name,
-        linkName,
-        teamMembers: ccRecipients,
-      });
-    } else {
       await sendViewedDocumentEmail({
         ownerEmail: primaryRecipient.email,
         documentId: view.document!.id,
@@ -216,16 +203,7 @@ async function sendImmediateEmail({
         teamMembers: ccRecipients,
         locationString: includeLocation ? locationString : undefined,
       });
-    }
   } else {
-    if (teamIsPaused) {
-      await sendViewedDataroomPausedEmail({
-        ownerEmail: primaryRecipient.email,
-        dataroomName: view.dataroom!.name,
-        linkName,
-        teamMembers: ccRecipients,
-      });
-    } else {
       await sendViewedDataroomEmail({
         ownerEmail: primaryRecipient.email,
         dataroomId: view.dataroom!.id,
@@ -235,6 +213,5 @@ async function sendImmediateEmail({
         teamMembers: ccRecipients,
         locationString: includeLocation ? locationString : undefined,
       });
-    }
   }
 }

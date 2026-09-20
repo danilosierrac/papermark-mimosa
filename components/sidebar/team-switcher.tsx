@@ -2,8 +2,6 @@
 
 import * as React from "react";
 
-import { useLimits } from "@/ee/limits/swr-handler";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { ChevronsUpDown, UserRoundPlusIcon } from "lucide-react";
 
 import { useSelfMembership } from "@/lib/hooks/use-self-membership";
@@ -26,8 +24,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import { AddSeatModal } from "../billing/add-seat-modal";
-import { UpgradePlanModal } from "../billing/upgrade-plan-modal";
 import { AddTeamMembers } from "../teams/add-team-member-modal";
 import { AddTeamModal } from "../teams/add-team-modal";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -43,10 +39,7 @@ export function TeamSwitcher({
 }) {
   const [isTeamMemberInviteModalOpen, setTeamMemberInviteModalOpen] =
     React.useState<boolean>(false);
-  const [isAddSeatModalOpen, setAddSeatModalOpen] =
-    React.useState<boolean>(false);
   const { isMobile } = useSidebar();
-  const { canAddUsers, showUpgradePlanModal } = useLimits();
   const { isTrial, isDataroomsPremium } = usePlan();
   // Dataroom-scoped members can't invite teammates; hide the invite control.
   const { isDataroomMember } = useSelfMembership();
@@ -125,12 +118,7 @@ export function TeamSwitcher({
                 </DropdownMenuItem>
               </AddTeamModal>
             ) : (
-              <UpgradePlanModal
-                clickedPlan={PlanEnum.DataRoomsPremium}
-                trigger="add_new_team"
-                highlightItem={["teams"]}
-              >
-                <DropdownMenuItem
+                              <DropdownMenuItem
                   className="cursor-pointer gap-2 p-2"
                   onSelect={(e) => e.preventDefault()}
                 >
@@ -141,28 +129,13 @@ export function TeamSwitcher({
                     Add new team
                   </div>
                 </DropdownMenuItem>
-              </UpgradePlanModal>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
       {!isDataroomMember && (
         <SidebarMenuItem>
-          {showUpgradePlanModal ? (
-            <UpgradePlanModal
-              clickedPlan={PlanEnum.Business}
-              trigger={"invite_team_members"}
-              highlightItem={["users"]}
-            >
-              <SidebarMenuButton
-                size="lg"
-                className="size-12 justify-center border data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden"
-              >
-                <UserRoundPlusIcon className="!size-5" strokeWidth={1.5} />
-              </SidebarMenuButton>
-            </UpgradePlanModal>
-          ) : canAddUsers ? (
-            <AddTeamMembers
+          <AddTeamMembers
               open={isTeamMemberInviteModalOpen}
               setOpen={setTeamMemberInviteModalOpen}
             >
@@ -173,19 +146,6 @@ export function TeamSwitcher({
                 <UserRoundPlusIcon className="!size-5" strokeWidth={1.5} />
               </SidebarMenuButton>
             </AddTeamMembers>
-          ) : (
-            <AddSeatModal
-              open={isAddSeatModalOpen}
-              setOpen={setAddSeatModalOpen}
-            >
-              <SidebarMenuButton
-                size="lg"
-                className="size-12 justify-center border data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden"
-              >
-                <UserRoundPlusIcon className="!size-5" strokeWidth={1.5} />
-              </SidebarMenuButton>
-            </AddSeatModal>
-          )}
         </SidebarMenuItem>
       )}
     </SidebarMenu>

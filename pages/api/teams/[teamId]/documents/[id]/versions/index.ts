@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { isTeamPausedById } from "@/ee/features/billing/cancellation/lib/is-team-paused";
-import type { convertFilesToPdfTask } from "@/ee/features/conversions/lib/trigger/convert-files";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { tasks } from "@trigger.dev/sdk";
 import { getServerSession } from "next-auth/next";
@@ -114,13 +112,6 @@ export default async function handle(
       }
 
       // Check if team is paused
-      const teamIsPaused = await isTeamPausedById(teamId);
-      if (teamIsPaused) {
-        return res.status(403).json({
-          error:
-            "Team is currently paused. New document uploads are not available.",
-        });
-      }
 
       const document = await prisma.document.findUnique({
         where: {
@@ -177,30 +168,6 @@ export default async function handle(
 
       const isMarkdown = isMarkdownFile({ name: url, contentType });
 
-      if (
-        (type === "docs" || type === "slides") &&
-        !isDownloadOnlyByExtension &&
-        !isMarkdown
-      ) {
-        await tasks.trigger<typeof convertFilesToPdfTask>(
-          "convert-files-to-pdf",
-          {
-            documentVersionId: version.id,
-            teamId,
-            documentId,
-          },
-          {
-            idempotencyKey: `${teamId}-${version.id}-docs`,
-            tags: [
-              `team_${teamId}`,
-              `document_${documentId}`,
-              `version:${version.id}`,
-            ],
-            queue: conversionQueueName(team.plan),
-            concurrencyKey: teamId,
-          },
-        );
-      }
 
       const videoMode = videoProcessingMode({ type, contentType });
       if (videoMode) {

@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 
 import React, { useEffect, useRef, useState } from "react";
 
-import { ConfidentialViewOverlay } from "@/ee/features/permissions/components/confidential-view/confidential-view-overlay";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 import { useDisablePullToRefresh } from "@/lib/hooks/use-disable-pull-to-refresh";
@@ -1159,12 +1158,6 @@ export default function PagesVerticalViewer({
             ) : null}
 
             {screenshotProtectionEnabled ? <ScreenProtector /> : null}
-            {confidentialViewEnabled ? (
-              <ConfidentialViewOverlay
-                navbarAbove={!isPseudoFullscreen && rotation === 0}
-                rotation={rotation}
-              />
-            ) : null}
             {showPoweredByBanner ? <PoweredBy linkId={linkId} /> : null}
             <AwayPoster
               isVisible={isInactive}

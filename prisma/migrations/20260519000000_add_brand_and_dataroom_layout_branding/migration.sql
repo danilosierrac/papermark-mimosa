@@ -1,7 +1,7 @@
 -- Consolidated branding/layout migration.
 -- Layout TEXT values (cardLayout, viewerLayoutPreset, viewerHeaderStyle) are
 -- validated by Zod at the API boundary; allowed values live in
--- ee/features/branding/lib/dataroom-viewer-layout.ts.
+-- the (since removed) data-room viewer layout code.
 
 ALTER TABLE "Brand"
     ADD COLUMN "accentButtonColor"        TEXT,

@@ -4,9 +4,7 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { InviteViewersModal } from "@/ee/features/dataroom-invitations/components/invite-viewers-modal";
-import { invitationEmailSchema } from "@/ee/features/dataroom-invitations/lib/schema/dataroom-invitations";
-import { PlanEnum } from "@/ee/stripe/constants";
+import { z } from "zod";
 import { DocumentVersion, LinkAudienceType } from "@prisma/client";
 import { isWithinInterval, subMinutes } from "date-fns";
 import {
@@ -45,7 +43,6 @@ import { LinkWithViews, WatermarkConfig } from "@/lib/types";
 import { cn, copyToClipboard, nFormatter, timeAgo } from "@/lib/utils";
 import { useMediaQuery } from "@/lib/utils/use-media-query";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -92,7 +89,6 @@ import LinkSheet, {
   DEFAULT_LINK_PROPS,
   type DEFAULT_LINK_TYPE,
 } from "./link-sheet";
-import { DataroomLinkSheet } from "./link-sheet/dataroom-link-sheet";
 import { TagColumn } from "./link-sheet/tags/tag-details";
 import LinksVisitors from "./links-visitors";
 import { useTransferLinkModal } from "./transfer-link-modal";
@@ -512,7 +508,7 @@ export default function LinksTable({
     const sanitizedEmails = Array.from(
       new Set(
         (link.allowList ?? []).filter(
-          (value) => invitationEmailSchema.safeParse(value).success,
+          (value) => z.string().email().safeParse(value).success,
         ),
       ),
     );
@@ -565,43 +561,32 @@ export default function LinksTable({
   };
 
   const AddLinkButton = () => {
-    if (!canAddLinks) {
-      return (
-        <UpgradePlanModal
-          clickedPlan={isTrial ? PlanEnum.Business : PlanEnum.Pro}
-          trigger={"limit_add_link"}
-        >
-          <Button>Upgrade to Create Link</Button>
-        </UpgradePlanModal>
-      );
-    } else {
-      return (
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setIsLinkSheetVisible(true)}>
-            Create link to share
-          </Button>
-          {targetId ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="More link actions"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={openBulkImport}>
-                  <FileSpreadsheetIcon className="mr-2 h-4 w-4" />
-                  Bulk import from CSV
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-        </div>
-      );
-    }
+    return (
+      <div className="flex items-center gap-2">
+        <Button onClick={() => setIsLinkSheetVisible(true)}>
+          Create link to share
+        </Button>
+        {targetId ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="More link actions"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={openBulkImport}>
+                <FileSpreadsheetIcon className="mr-2 h-4 w-4" />
+                Bulk import from CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+      </div>
+    );
   };
 
   const handleArchiveLink = async (
@@ -1175,76 +1160,13 @@ export default function LinksTable({
           linksTableContent
         )}
 
-        {targetType === "DATAROOM" ? (
-          <>
-            <DataroomLinkSheet
-              isOpen={isLinkSheetVisible}
-              setIsOpen={(open: boolean) => {
-                setIsLinkSheetVisible(open);
-                if (!open) {
-                  setOpenLinkSheetToFiles(false);
-                }
-              }}
-              linkType={`${targetType}_LINK`}
-              currentLink={selectedLink.id ? selectedLink : undefined}
-              existingLinks={links}
-              linkTargetId={targetId}
-              initialView={openLinkSheetToFiles ? "files" : undefined}
-            />
-
-            {inviteLink ? (
-              <InviteViewersModal
-                open={isInviteModalOpen}
-                setOpen={(open) => {
-                  setIsInviteModalOpen(open);
-                  if (!open) {
-                    setInviteLink(null);
-                  }
-                }}
-                dataroomId={targetId}
-                dataroomName={dataroomDisplayName}
-                groupId={inviteLink.groupId ?? undefined}
-                linkId={inviteLink.id}
-                defaultEmails={inviteDefaultEmails}
-                canSend={canInviteViewers}
-                onSuccess={() => {
-                  if (linksApiRoute) {
-                    mutate(linksApiRoute);
-                  }
-                  setInviteLink(null);
-                  // Invitees land on the room's participant list, where their
-                  // invited status and access now show up. The list is cached,
-                  // so drop it first or the fresh invite would not be there.
-                  if (targetType === "DATAROOM" && targetId) {
-                    mutate(
-                      (key) =>
-                        typeof key === "string" &&
-                        key.includes(`/datarooms/${targetId}/visitors`),
-                      undefined,
-                      { revalidate: true },
-                    );
-                    router.push(`/datarooms/${targetId}/participants`);
-                  }
-                }}
-              />
-            ) : null}
-            <UpgradePlanModal
-              clickedPlan={PlanEnum.DataRoomsPlus}
-              trigger="links_table_invite_upgrade"
-              highlightItem={["email-invite"]}
-              open={showInviteUpgrade}
-              setOpen={setShowInviteUpgrade}
-            />
-          </>
-        ) : (
-          <LinkSheet
-            isOpen={isLinkSheetVisible}
-            setIsOpen={setIsLinkSheetVisible}
-            linkType={`${targetType}_LINK`}
-            currentLink={selectedLink.id ? selectedLink : undefined}
-            existingLinks={links}
-          />
-        )}
+        <LinkSheet
+          isOpen={isLinkSheetVisible}
+          setIsOpen={setIsLinkSheetVisible}
+          linkType={`${targetType}_LINK`}
+          currentLink={selectedLink.id ? selectedLink : undefined}
+          existingLinks={links}
+        />
 
         {selectedEmbedLink && (
           <EmbedCodeModal

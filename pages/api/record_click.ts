@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { newId } from "@/lib/id-helper";
-import { recordClickEvent } from "@/lib/tinybird";
+import { recordClickEvent } from "@/lib/events";
 import { log } from "@/lib/utils";
 
 const bodyValidation = z.object({
@@ -76,7 +76,7 @@ export default async function handler(
     res.status(200).json({ message: "Click event recorded" });
   } catch (error) {
     log({
-      message: `Failed to record click event (tinybird) for ${linkId}. \n\n ${error}`,
+      message: `Failed to record click event for ${linkId}. \n\n ${error}`,
       type: "error",
       mention: true,
     });

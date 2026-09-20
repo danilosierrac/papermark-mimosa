@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { isTeamPaused } from "@/ee/features/billing/cancellation/lib/is-team-paused";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { Prisma, View } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
@@ -11,8 +10,8 @@ import { isDataroomScopedRole } from "@/lib/api/rbac/permissions";
 import { LIMITS } from "@/lib/constants";
 import { errorhandler } from "@/lib/errorHandler";
 import prisma from "@/lib/prisma";
-import { getViewPageDuration } from "@/lib/tinybird";
-import { getVideoEventsByDocument } from "@/lib/tinybird/pipes";
+import { getViewPageDuration } from "@/lib/events";
+import { getVideoEventsByDocument } from "@/lib/events";
 import { CustomUser } from "@/lib/types";
 import { log } from "@/lib/utils";
 import {

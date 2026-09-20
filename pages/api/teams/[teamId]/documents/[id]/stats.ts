@@ -10,11 +10,11 @@ import prisma from "@/lib/prisma";
 import {
   getTotalAvgPageDuration,
   getTotalDocumentDuration,
-} from "@/lib/tinybird";
+} from "@/lib/events";
 import {
   getVideoEventsByDocument,
   getViewCompletionStats,
-} from "@/lib/tinybird/pipes";
+} from "@/lib/events";
 import { CustomUser } from "@/lib/types";
 import {
   countablePlaybackEvents,
@@ -237,7 +237,7 @@ export default async function handle(
             const viewStats = statsMap.get(view.id);
             if (!viewStats) return 0;
 
-            // Find the version that matches the versionNumber from Tinybird
+            // Find the version that matches the versionNumber from the analytics tables
             const relevantVersion = document.versions.find(
               (version) => version.versionNumber === viewStats.versionNumber,
             );

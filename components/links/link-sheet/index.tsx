@@ -12,7 +12,6 @@ import {
 } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { LinkAudienceType, LinkPreset, LinkType } from "@prisma/client";
 import { RefreshCwIcon } from "lucide-react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -22,13 +21,11 @@ import useSWR from "swr";
 
 import { useAnalytics } from "@/lib/analytics";
 import { usePlan } from "@/lib/swr/use-billing";
-import useDataroomGroups from "@/lib/swr/use-dataroom-groups";
 import { useDomains } from "@/lib/swr/use-domains";
 import useLimits from "@/lib/swr/use-limits";
 import { LinkWithViews, WatermarkConfig } from "@/lib/types";
 import { convertDataUrlToFile, fetcher, uploadImage } from "@/lib/utils";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,10 +50,13 @@ import { ButtonTooltip } from "@/components/ui/tooltip";
 
 import AllowNotificationSection from "./allow-notification-section";
 import { CustomFieldData } from "./custom-fields-panel";
-import { type ItemPermission } from "./dataroom-link-sheet";
 import DomainSection from "./domain-section";
 import { LinkOptions } from "./link-options";
 import InlineTagSelector from "./tags/inline-tag-selector";
+
+// Per-item file permissions only existed for data-room links; kept as a
+// loose record so stored link presets keep their shape.
+type ItemPermission = Record<string, unknown>;
 
 export const DEFAULT_LINK_PROPS = (
   linkType: Omit<LinkType, "WORKFLOW_LINK">,
@@ -186,16 +186,12 @@ export default function LinkSheet({
 
   const { domains } = useDomains({ enabled: isOpen });
 
-  const {
-    viewerGroups,
-    loading: isLoadingGroups,
-    mutate: mutateGroups,
-  } = useDataroomGroups({
-    dataroomId:
-      linkType === LinkType.DATAROOM_LINK
-        ? (linkTargetId ?? undefined)
-        : undefined,
-  });
+  // Group links belonged to data rooms, which this fork does not ship.
+  const viewerGroups = undefined as
+    | { id: string; name: string; _count: { members: number } }[]
+    | undefined;
+  const isLoadingGroups = false;
+  const mutateGroups = async () => undefined;
   const teamInfo = useTeam();
   const { isFree, isPro, isBusiness, isDatarooms, isDataroomsPlus, isTrial } =
     usePlan();
@@ -714,14 +710,9 @@ export default function LinkSheet({
                             Group
                           </TabsTrigger>
                         ) : (
-                          <UpgradePlanModal
-                            clickedPlan={PlanEnum.DataRooms}
-                            trigger="add_group_link"
-                          >
-                            <div className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all">
+                                                      <div className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all">
                               Group
                             </div>
-                          </UpgradePlanModal>
                         )}
                       </TabsList>
                     ) : null}

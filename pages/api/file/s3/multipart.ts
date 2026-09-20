@@ -10,8 +10,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getServerSession } from "next-auth";
 import path from "node:path";
 
-import { isTeamPausedById } from "@/ee/features/billing/cancellation/lib/is-team-paused";
-import { getLimits } from "@/ee/limits/server";
+import { getLimits } from "@/lib/limits";
 import {
   FREE_PLAN_ACCEPTED_FILE_TYPES,
   ONE_HOUR,
@@ -87,17 +86,8 @@ export default async function handler(
     }
 
     if (action === "initiate" || action === "get-part-urls") {
-      const [limits, teamIsPaused] = await Promise.all([
-        getLimits({ teamId, userId }),
-        isTeamPausedById(teamId),
-      ]);
+      const limits = await getLimits({ teamId, userId });
 
-      if (teamIsPaused) {
-        return res.status(403).json({
-          error:
-            "Team is currently paused. New document uploads are not available.",
-        });
-      }
 
       const documentLimit = limits.documents;
       if (

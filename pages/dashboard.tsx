@@ -59,7 +59,7 @@ export default function DashboardPage() {
   }>(defaultRange);
 
   // Check if user has access to data beyond 30 days
-  const isPremium = plan !== "free" || !!trial;
+  const isPremium = true;
 
   const {
     type = "links",

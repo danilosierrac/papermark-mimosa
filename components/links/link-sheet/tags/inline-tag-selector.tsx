@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
-import { PlanEnum } from "@/ee/stripe/constants";
 import { Tag } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
@@ -13,7 +12,6 @@ import { useTags } from "@/lib/swr/use-tags";
 import { TagProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/ui/multi-select-v2";
 import { ButtonTooltip } from "@/components/ui/tooltip";
@@ -189,14 +187,6 @@ export default function InlineTagSelector({
         </Button>
       </ButtonTooltip>
 
-      {showUpgradeModal && (
-        <UpgradePlanModal
-          clickedPlan={PlanEnum.Pro}
-          trigger="create_tag"
-          open={showUpgradeModal}
-          setOpen={setShowUpgradeModal}
-        />
-      )}
     </div>
   );
 }

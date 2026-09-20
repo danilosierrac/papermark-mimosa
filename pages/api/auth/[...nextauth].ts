@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { checkRateLimit, rateLimiters } from "@/ee/features/security";
+import { checkRateLimit, rateLimiters } from "@/lib/security/ratelimit";
 import { isSamlEnforcedForEmailDomain } from "@/lib/api/teams/is-saml-enforced-for-email-domain";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 

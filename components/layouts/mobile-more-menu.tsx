@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { useTeam } from "@/context/team-context";
-import { PlanEnum } from "@/ee/stripe/constants";
 import {
   BrushIcon,
   ChevronDownIcon,
@@ -21,7 +20,6 @@ import { useSlackIntegration } from "@/lib/swr/use-slack-integration";
 import { Team } from "@/lib/types";
 import { cn, nFormatter } from "@/lib/utils";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { Progress } from "@/components/ui/progress";
 
 import { SlackIcon } from "../shared/icons/slack-icon";
@@ -107,16 +105,10 @@ export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
           {!isDataroomMember && (
             <>
               {isFree && !isTrial ? (
-                <UpgradePlanModal
-                  clickedPlan={PlanEnum.Pro}
-                  trigger="mobile_more_visitors"
-                  highlightItem={["visitors"]}
-                >
-                  <button className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                                  <button className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                     <ContactIcon className="h-5 w-5" />
                     Visitors
                   </button>
-                </UpgradePlanModal>
               ) : (
                 <Link
                   href="/visitors"

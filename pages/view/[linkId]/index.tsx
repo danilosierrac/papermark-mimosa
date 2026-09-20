@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 
 import { useEffect, useState } from "react";
 
-import WorkflowAccessView from "@/ee/features/workflows/components/workflow-access-view";
 import { Brand, DataroomBrand, DataroomDocument } from "@prisma/client";
 import Cookies from "js-cookie";
 import { useSession } from "next-auth/react";
@@ -33,7 +32,6 @@ import {
 
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import CustomMetaTag from "@/components/view/custom-metatag";
-import DataroomView from "@/components/view/dataroom/dataroom-view";
 import DocumentView from "@/components/view/document-view";
 import { ViewerI18nProvider } from "@/components/view/viewer-i18n-provider";
 import { ViewerNotFound } from "@/components/view/viewer-not-found";
@@ -44,21 +42,9 @@ type DocumentLinkData = {
   brand: Brand | null;
 };
 
-type DataroomLinkData = {
-  linkType: "DATAROOM_LINK";
-  link: LinkWithDataroom;
-  brand: DataroomBrand | null;
-};
-
-type WorkflowLinkData = {
-  linkType: "WORKFLOW_LINK";
-  entryLinkId: string;
-  brand: Brand | null;
-};
-
 export interface ViewPageProps extends Partial<ViewerI18nPageProps> {
   frozen?: boolean;
-  linkData: DocumentLinkData | DataroomLinkData | WorkflowLinkData;
+  linkData: DocumentLinkData;
   notionData: {
     rootNotionPageId: string | null;
     recordMap: ExtendedRecordMap | null;
@@ -120,38 +106,6 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
     // helper falls back to English in that case.
     const i18nProps = await buildViewerI18nPageProps(brand as any);
 
-    // Handle workflow links - minimal props needed
-    if (linkType === "WORKFLOW_LINK") {
-      return {
-        props: {
-          linkData: {
-            linkType: "WORKFLOW_LINK",
-            entryLinkId: linkId,
-            brand: brand || null,
-          },
-          notionData: {
-            rootNotionPageId: null,
-            recordMap: null,
-            theme: null,
-          },
-          meta: {
-            enableCustomMetatag: publicMeta.enableCustomMetatag,
-            metaTitle: publicMeta.metaTitle,
-            metaDescription: publicMeta.metaDescription,
-            metaImage: publicMeta.metaImage,
-            metaUrl: `https://www.papermark.com/view/${linkId}`,
-            metaFavicon: publicMeta.metaFavicon,
-          },
-          showPoweredByBanner: false,
-          showAccountCreationSlide: false,
-          useAdvancedExcelViewer: false,
-          hideFooterOnAccessForm: false,
-          logoOnAccessForm: false,
-          ...i18nProps,
-        },
-        revalidate: 60,
-      };
-    }
 
     if (!link) {
       return {
@@ -248,88 +202,6 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
       };
     }
 
-    // Manage the data for the dataroom link
-    if (linkType === "DATAROOM_LINK") {
-      // iterate the link.documents and extract type and file and rest of the props
-      let documents = [];
-      for (const document of link.dataroom.documents) {
-        const { file, updatedAt, ...versionWithoutTypeAndFile } =
-          document.document.versions[0];
-
-        const newDocument = {
-          ...document.document,
-          dataroomDocumentId: document.id,
-          folderId: document.folderId,
-          orderIndex: document.orderIndex,
-          hierarchicalIndex: document.hierarchicalIndex,
-          versions: [
-            {
-              ...versionWithoutTypeAndFile,
-              updatedAt:
-                document.updatedAt > updatedAt ? document.updatedAt : updatedAt, // use the latest updatedAt
-            },
-          ],
-        };
-
-        documents.push(newDocument);
-      }
-
-      const { teamId } = link.dataroom;
-
-      const featureFlags = await getFeatureFlags({ teamId });
-      const dataroomIndexEnabled =
-        result.dataroomIndexEnabledForViewer ?? false;
-      const annotationsEnabled = featureFlags.annotations;
-      const textSelectionEnabled = featureFlags.textSelection;
-      const logoOnAccessFormEnabled = featureFlags.logoOnAccessForm;
-      const hideFooterOnAccessFormEnabled = featureFlags.hideFooterOnAccessForm;
-
-      const lastUpdatedAt = link.dataroom.documents.reduce(
-        (max: number, doc: any) => {
-          return Math.max(
-            max,
-            new Date(doc.document.versions[0].updatedAt).getTime(),
-          );
-        },
-        new Date(link.dataroom.createdAt).getTime(),
-      );
-
-      return {
-        props: {
-          linkData: {
-            linkType: "DATAROOM_LINK",
-            link: {
-              ...link,
-              teamId: teamId,
-              dataroom: {
-                ...link.dataroom,
-                documents,
-                lastUpdatedAt: lastUpdatedAt,
-              },
-            },
-            brand,
-          },
-          meta: {
-            enableCustomMetatag: publicMeta.enableCustomMetatag,
-            metaTitle: publicMeta.metaTitle,
-            metaDescription: publicMeta.metaDescription,
-            metaImage: publicMeta.metaImage,
-            metaFavicon: publicMeta.metaFavicon,
-            metaUrl: `https://www.papermark.com/view/${linkId}`,
-          },
-          showPoweredByBanner: false,
-          showAccountCreationSlide: false,
-          useAdvancedExcelViewer: false, // INFO: this is managed in the API route
-          hideFooterOnAccessForm: hideFooterOnAccessFormEnabled,
-          logoOnAccessForm: logoOnAccessFormEnabled,
-          dataroomIndexEnabled,
-          annotationsEnabled,
-          textSelectionEnabled,
-          ...i18nProps,
-        },
-        revalidate: 10,
-      };
-    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("Fetching error:", message);
@@ -414,24 +286,6 @@ function ViewPageInner({
   const disableEditPassword = !!disableEditEmail && !!urlPasscode;
   const { linkType } = linkData;
 
-  // Render workflow access view for WORKFLOW_LINK
-  if (linkType === "WORKFLOW_LINK") {
-    const { entryLinkId, brand } = linkData as WorkflowLinkData;
-
-    return (
-      <>
-        <CustomMetaTag
-          favicon={meta.metaFavicon}
-          enableBranding={false}
-          title="Access Workflow | Powered by Papermark"
-          description={null}
-          imageUrl={null}
-          url={meta.metaUrl ?? ""}
-        />
-        <WorkflowAccessView entryLinkId={entryLinkId} brand={brand} />
-      </>
-    );
-  }
 
   // Render the document view for DOCUMENT_LINK
   if (linkType === "DOCUMENT_LINK") {
@@ -515,84 +369,6 @@ function ViewPageInner({
     );
   }
 
-  // Render the dataroom view for DATAROOM_LINK
-  if (linkType === "DATAROOM_LINK") {
-    const { link, brand } = linkData as DataroomLinkData;
-
-    if (!link || status === "loading" || router.isFallback) {
-      return (
-        <>
-          <CustomMetaTag
-            favicon={meta.metaFavicon}
-            enableBranding={meta.enableCustomMetatag ?? false}
-            title={
-              meta.metaTitle ?? `${link?.dataroom?.name} | Powered by Papermark`
-            }
-            description={meta.metaDescription ?? null}
-            imageUrl={meta.metaImage ?? null}
-            url={meta.metaUrl ?? ""}
-          />
-          <div className="flex h-screen items-center justify-center">
-            <LoadingSpinner className="h-20 w-20" />
-          </div>
-        </>
-      );
-    }
-
-    const {
-      expiresAt,
-      emailProtected,
-      emailAuthenticated,
-      password: linkPassword,
-      enableAgreement,
-      isArchived,
-    } = link;
-
-    const { email: userEmail, id: userId } =
-      (session?.user as CustomUser) || {};
-
-    // If the link is expired, show a 404 page
-    if (expiresAt && new Date(expiresAt) < new Date()) {
-      return <ViewerNotFound reason="expired" />;
-    }
-
-    if (isArchived) {
-      return <ViewerNotFound reason="archived" />;
-    }
-
-    return (
-      <>
-        <CustomMetaTag
-          favicon={meta.metaFavicon}
-          enableBranding={meta.enableCustomMetatag ?? false}
-          title={
-            meta.metaTitle ?? `${link?.dataroom?.name} | Powered by Papermark`
-          }
-          description={meta.metaDescription ?? null}
-          imageUrl={meta.metaImage ?? null}
-          url={meta.metaUrl ?? ""}
-        />
-        <DataroomView
-          link={link}
-          userEmail={verifiedEmail ?? storedEmail ?? userEmail}
-          verifiedEmail={verifiedEmail}
-          userId={userId}
-          isProtected={!!(emailProtected || linkPassword || enableAgreement)}
-          brand={brand}
-          disableEditEmail={!!disableEditEmail}
-          urlPasscode={urlPasscode}
-          disableEditPassword={disableEditPassword}
-          hideFooterOnAccessForm={hideFooterOnAccessForm}
-          logoOnAccessForm={logoOnAccessForm}
-          token={storedToken}
-          previewToken={previewToken}
-          preview={!!preview}
-          dataroomIndexEnabled={dataroomIndexEnabled}
-          textSelectionEnabled={textSelectionEnabled}
-        />
-      </>
-    );
-  }
 }
 
 export default function ViewPage(

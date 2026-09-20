@@ -1,6 +1,5 @@
 import { CircleHelpIcon } from "lucide-react";
 
-import PlanBadge from "@/components/billing/plan-badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BadgeTooltip } from "@/components/ui/tooltip";
 
@@ -129,7 +128,6 @@ export default function EmailAccessSection({
                   <span className="inline-flex">
                     <TabsTrigger value={segment.value} className="gap-1 px-6">
                       <span>{segment.label}</span>
-                      {showBadge ? <PlanBadge plan="business" /> : null}
                     </TabsTrigger>
                   </span>
                 </BadgeTooltip>

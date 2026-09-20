@@ -1,20 +1,16 @@
 import { useState } from "react";
 
-import ConfidentialViewSection from "@/ee/features/permissions/components/confidential-view/confidential-view-section";
-import { PlanEnum } from "@/ee/stripe/constants";
 import { LinkAudienceType, LinkType } from "@prisma/client";
 import { LinkPreset } from "@prisma/client";
 
 import { usePlan } from "@/lib/swr/use-billing";
 import useLimits from "@/lib/swr/use-limits";
 
-import { UpgradePlanModal } from "@/components/billing/upgrade-plan-modal";
 import { DEFAULT_LINK_TYPE } from "@/components/links/link-sheet";
 import AgreementSection from "@/components/links/link-sheet/agreement-section";
 import AllowDownloadSection from "@/components/links/link-sheet/allow-download-section";
 import AllowListSection from "@/components/links/link-sheet/allow-list-section";
 import AllowNotificationSection from "@/components/links/link-sheet/allow-notification-section";
-import ConversationSection from "@/components/links/link-sheet/conversation-section";
 import CustomFieldsSection from "@/components/links/link-sheet/custom-fields-section";
 import DenyListSection from "@/components/links/link-sheet/deny-list-section";
 import EmailAuthenticationSection from "@/components/links/link-sheet/email-authentication-section";
@@ -26,7 +22,6 @@ import PasswordSection from "@/components/links/link-sheet/password-section";
 import { ProBannerSection } from "@/components/links/link-sheet/pro-banner-section";
 import QuestionSection from "@/components/links/link-sheet/question-section";
 import ScreenshotProtectionSection from "@/components/links/link-sheet/screenshot-protection-section";
-import UploadSection from "@/components/links/link-sheet/upload-section";
 import WatermarkSection from "@/components/links/link-sheet/watermark-section";
 import ChevronDown from "@/components/shared/icons/chevron-down";
 
@@ -69,7 +64,6 @@ export const OnboardingLinkOptions = ({
 
   const [openUpgradeModal, setOpenUpgradeModal] = useState<boolean>(false);
   const [trigger, setTrigger] = useState<string>("");
-  const [upgradePlan, setUpgradePlan] = useState<PlanEnum>(PlanEnum.Business);
   const [showAdvancedSettings, setShowAdvancedSettings] =
     useState<boolean>(false);
   const [highlightItem, setHighlightItem] = useState<string[]>([]);
@@ -82,9 +76,6 @@ export const OnboardingLinkOptions = ({
   }: LinkUpgradeOptions) => {
     setOpenUpgradeModal(state);
     setTrigger(trigger);
-    if (plan) {
-      setUpgradePlan(plan as PlanEnum);
-    }
     setHighlightItem(highlightItem || []);
   };
 
@@ -122,16 +113,6 @@ export const OnboardingLinkOptions = ({
   // Advanced settings that are shown only when showAdvancedSettings is true
   const advancedSettings = (
     <>
-      {limits?.dataroomUpload &&
-      linkType === LinkType.DATAROOM_LINK &&
-      targetId ? (
-        <UploadSection
-          {...{ data, setData }}
-          isAllowed={isTrial || isDatarooms || isDataroomsPlus}
-          handleUpgradeStateChange={handleUpgradeStateChange}
-          targetId={targetId}
-        />
-      ) : null}
       <OGSection
         {...{ data, setData }}
         isAllowed={
@@ -195,11 +176,6 @@ export const OnboardingLinkOptions = ({
         }
         handleUpgradeStateChange={handleUpgradeStateChange}
       />
-      <ConfidentialViewSection
-        {...{ data, setData }}
-        isAllowed={isTrial || isBusiness || isDatarooms || isDataroomsPlus}
-        handleUpgradeStateChange={handleUpgradeStateChange}
-      />
       <WatermarkSection
         {...{ data, setData }}
         isAllowed={
@@ -215,17 +191,6 @@ export const OnboardingLinkOptions = ({
         }
         handleUpgradeStateChange={handleUpgradeStateChange}
       />
-      {linkType === LinkType.DATAROOM_LINK ? (
-        <ConversationSection
-          {...{ data, setData }}
-          isAllowed={
-            isTrial ||
-            isDataroomsPlus ||
-            ((isBusiness || isDatarooms) && !!limits?.conversationsInDataroom)
-          }
-          handleUpgradeStateChange={handleUpgradeStateChange}
-        />
-      ) : null}
       {linkType === LinkType.DOCUMENT_LINK ? (
         <>
           <FeedbackSection {...{ data, setData }} />
@@ -269,13 +234,6 @@ export const OnboardingLinkOptions = ({
     <div>
       {basicSettings}
       {showAdvancedSettings && advancedSettings}
-      <UpgradePlanModal
-        clickedPlan={upgradePlan}
-        open={openUpgradeModal}
-        setOpen={setOpenUpgradeModal}
-        trigger={trigger}
-        highlightItem={highlightItem}
-      />
     </div>
   );
 };

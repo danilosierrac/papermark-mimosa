@@ -10,7 +10,6 @@ import { type ViewerI18nPageProps } from "@/lib/i18n/viewer-page-props";
 import { LinkWithDataroom, LinkWithDocument } from "@/lib/types";
 
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import DataroomView from "@/components/view/dataroom/dataroom-view";
 import DocumentView from "@/components/view/document-view";
 import { ViewerI18nProvider } from "@/components/view/viewer-i18n-provider";
 import { ViewerNotFound } from "@/components/view/viewer-not-found";
@@ -24,16 +23,10 @@ type DocumentLinkData = {
   brand: Brand | null;
 };
 
-type DataroomLinkData = {
-  linkType: "DATAROOM_LINK";
-  link: LinkWithDataroom;
-  brand: DataroomBrand | null;
-};
-
 type DomainEmbedPageProps = Partial<ViewerI18nPageProps> & {
   frozen?: boolean;
   error?: boolean;
-  linkData: DocumentLinkData | DataroomLinkData | { linkType: string };
+  linkData: DocumentLinkData | { linkType: string };
   notionData: {
     rootNotionPageId: string | null;
     recordMap: any;
@@ -160,53 +153,6 @@ function EmbedPageInner(props: DomainEmbedPageProps) {
     );
   }
 
-  if (linkType === "DATAROOM_LINK") {
-    const { link, brand } = props.linkData as DataroomLinkData;
-    if (!link || router.isFallback) {
-      return (
-        <div className="flex h-screen items-center justify-center">
-          <LoadingSpinner className="h-20 w-20" />
-        </div>
-      );
-    }
-
-    const {
-      expiresAt,
-      emailProtected,
-      password: linkPassword,
-      enableAgreement,
-      isArchived,
-    } = link;
-
-    if (expiresAt && new Date(expiresAt) < new Date()) {
-      return <ViewerNotFound reason="expired" />;
-    }
-
-    if (isArchived) {
-      return <ViewerNotFound reason="archived" />;
-    }
-
-    return (
-      <div className="h-screen w-full overflow-hidden">
-        <DataroomView
-          link={link}
-          userEmail={verifiedEmail}
-          userId={null}
-          isProtected={!!(emailProtected || linkPassword || enableAgreement)}
-          brand={brand}
-          previewToken={previewToken}
-          disableEditEmail={!!disableEditEmail}
-          urlPasscode={urlPasscode}
-          disableEditPassword={disableEditPassword}
-          hideFooterOnAccessForm={props.hideFooterOnAccessForm}
-          logoOnAccessForm={props.logoOnAccessForm}
-          verifiedEmail={verifiedEmail}
-          textSelectionEnabled={props.textSelectionEnabled}
-          isEmbedded
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen items-center justify-center">

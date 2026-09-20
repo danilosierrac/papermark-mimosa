@@ -1,8 +1,8 @@
 import {
   resolveBrandLogo,
   type ResolvedBrandLogo,
-} from "@/ee/features/branding/lib/brand-logo";
-import { resolveBaseBrand } from "@/ee/features/branding/lib/resolve-base-brand";
+} from "@/lib/brand/brand-logo";
+import { resolveBaseBrand } from "@/lib/brand/resolve-brand";
 
 import { getCustomEmail } from "@/lib/edge-config/custom-email";
 import { readCachedBrandLogo } from "@/lib/redis/brand-logo-cache";
@@ -36,7 +36,6 @@ export const sendOtpVerificationEmail = async (
       const brand = await resolveBaseBrand({
         teamId,
         linkBrandId: brandContext?.linkBrandId,
-        dataroomBrandId: brandContext?.dataroomBrandId,
         select: { logo: true, hideLogo: true },
       });
       logo = resolveBrandLogo(brand);
