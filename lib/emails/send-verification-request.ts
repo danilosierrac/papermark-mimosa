@@ -2,7 +2,7 @@ import { waitUntil } from "@vercel/functions";
 import { customAlphabet } from "nanoid";
 
 import { redis } from "@/lib/redis";
-import { sendEmail } from "@/lib/resend";
+import { resend, sendEmail } from "@/lib/resend";
 
 import VerificationCodeEmail from "@/components/emails/verification-link";
 
@@ -48,6 +48,14 @@ export const sendVerificationRequestEmail = async (params: {
     JSON.stringify(loginCodeData),
     { ex: TOKEN_EXPIRATION_SECONDS },
   );
+
+  // No RESEND_API_KEY configured (local dev without an email provider):
+  // print the login code instead of sending it, same stopgap pattern used
+  // elsewhere in this fork for services nobody has set up yet.
+  if (!resend && process.env.NODE_ENV === "development") {
+    console.log(`[Login code for ${email}]: ${code}`);
+    return;
+  }
 
   const emailTemplate = VerificationCodeEmail({
     email,

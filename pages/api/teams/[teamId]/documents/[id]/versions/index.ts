@@ -10,6 +10,7 @@ import { getFeatureFlags } from "@/lib/featureFlags";
 import prisma from "@/lib/prisma";
 import { processVideo } from "@/lib/trigger/optimize-video-files";
 import { convertPdfToImageRoute } from "@/lib/trigger/pdf-to-image-route";
+import { convertPdfToImageLocal } from "@/lib/documents/convert-pdf-to-image-local";
 import { CustomUser } from "@/lib/types";
 import { log } from "@/lib/utils";
 import { isMarkdownFile } from "@/lib/utils/get-content-type";
@@ -169,8 +170,10 @@ export default async function handle(
       const isMarkdown = isMarkdownFile({ name: url, contentType });
 
 
+      const triggerConfigured = !!process.env.TRIGGER_SECRET_KEY;
+
       const videoMode = videoProcessingMode({ type, contentType });
-      if (videoMode) {
+      if (videoMode && triggerConfigured) {
         await processVideo.trigger(
           {
             documentVersionId: version.id,
@@ -189,8 +192,16 @@ export default async function handle(
         );
       }
 
+      if (type === "pdf" && !triggerConfigured) {
+        convertPdfToImageLocal({
+          documentId,
+          documentVersionId: version.id,
+          teamId,
+        });
+      }
+
       // trigger document uploaded event to trigger convert-pdf-to-image job
-      if (type === "pdf") {
+      if (type === "pdf" && triggerConfigured) {
         await convertPdfToImageRoute.trigger(
           {
             documentId: documentId,

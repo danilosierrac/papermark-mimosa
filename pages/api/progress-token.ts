@@ -16,6 +16,12 @@ export default async function handle(
     return res.status(400).json({ error: "Document version ID is required" });
   }
 
+  if (!process.env.TRIGGER_SECRET_KEY) {
+    // No Trigger.dev account configured: there's no realtime run to attach
+    // to. Respond with no token rather than a 500 the polling UI would spam.
+    return res.status(200).json({ publicAccessToken: null });
+  }
+
   try {
     const publicAccessToken = await generateTriggerPublicAccessToken(
       `version:${documentVersionId}`,

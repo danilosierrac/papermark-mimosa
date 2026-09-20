@@ -81,3 +81,4 @@ _public/
 
 .opencode
 plans/.github/workflows/
+upstash-rest-shim.js

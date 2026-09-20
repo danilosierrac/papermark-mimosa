@@ -2,6 +2,7 @@ import { tasks } from "@trigger.dev/sdk";
 
 import { validateExternalDocumentUrl } from "@/lib/api/documents/validate-external-url";
 import { DocumentData } from "@/lib/documents/create-document";
+import { convertPdfToImageLocal } from "@/lib/documents/convert-pdf-to-image-local";
 import { getFeatureFlags } from "@/lib/featureFlags";
 import prisma from "@/lib/prisma";
 import { processVideo } from "@/lib/trigger/optimize-video-files";
@@ -138,8 +139,14 @@ export const processDocument = async ({
     },
   });
 
+  // No Trigger.dev account configured (e.g. local dev/demo): skip background
+  // jobs (video processing, PDF-to-image conversion) rather than failing the
+  // whole upload after the document row is already created. Page thumbnails
+  // and video transcodes simply won't run until this is wired up for real.
+  const triggerConfigured = !!process.env.TRIGGER_SECRET_KEY;
+
   const videoMode = videoProcessingMode({ type, contentType });
-  if (videoMode) {
+  if (videoMode && triggerConfigured) {
     await processVideo.trigger(
       {
         documentVersionId: document.versions[0].id,
@@ -158,8 +165,17 @@ export const processDocument = async ({
     );
   }
 
+  if (type === "pdf" && !triggerConfigured) {
+    // Fire-and-forget: don't make the caller wait on page conversion.
+    convertPdfToImageLocal({
+      documentId: document.id,
+      documentVersionId: document.versions[0].id,
+      teamId,
+    });
+  }
+
   // skip triggering convert-pdf-to-image job for "notion" / "excel" documents
-  if (type === "pdf") {
+  if (type === "pdf" && triggerConfigured) {
     await convertPdfToImageRoute.trigger(
       {
         documentId: document.id,
