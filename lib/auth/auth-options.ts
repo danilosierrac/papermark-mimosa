@@ -106,6 +106,29 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
+    signIn: async ({ user }) => {
+      const email = user?.email?.toLowerCase();
+      if (!email) return false;
+
+      // Internal-only demo: restrict who can ever create a session, across
+      // every provider (magic link, Google, LinkedIn, passkey). Empty env
+      // var means unrestricted (local dev default).
+      const allowedDomains = (process.env.ALLOWED_LOGIN_DOMAINS ?? "")
+        .split(",")
+        .map((d) => d.trim().toLowerCase())
+        .filter(Boolean);
+      const allowedEmails = (process.env.ALLOWED_LOGIN_EMAILS ?? "")
+        .split(",")
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+
+      if (allowedDomains.length === 0 && allowedEmails.length === 0) {
+        return true;
+      }
+
+      const domain = email.split("@")[1];
+      return allowedEmails.includes(email) || allowedDomains.includes(domain);
+    },
     jwt: async (params) => {
       const { token, user, trigger, account } = params;
       if (!token.email) {
