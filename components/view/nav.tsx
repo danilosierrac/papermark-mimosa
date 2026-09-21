@@ -139,13 +139,14 @@ export default function Nav({
           />
         );
       case "mimosa":
-        // The SVG's `fill="currentColor"` can't pick up navColorPalette
-        // here since it's loaded via <img src>, not inlined — it always
-        // renders in its own ink color regardless of link theme.
+        // mimosa-wordmark.svg uses fill="currentColor", which resolves to
+        // black when loaded via <img src> (no page CSS reaches into it) --
+        // invisible against this nav's default black background. The
+        // pre-rendered white PNG works regardless of link theme.
         return (
           <img
             className="h-4 w-auto sm:h-[18px]"
-            src="/_static/mimosa-wordmark.svg"
+            src="/_static/mimosa-logo-white.png"
             alt="mimosa"
           />
         );

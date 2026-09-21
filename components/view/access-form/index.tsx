@@ -198,7 +198,7 @@ export default function AccessForm({
                 />
               ) : (
                 <img
-                  src="/_static/mimosa-wordmark.svg"
+                  src="/_static/mimosa-logo-white.png"
                   alt="mimosa"
                   className="h-4 w-auto sm:h-[18px]"
                 />
