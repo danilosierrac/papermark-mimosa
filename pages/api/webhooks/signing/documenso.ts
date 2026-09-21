@@ -50,8 +50,16 @@ export default async function handler(
     };
 
     // Only the terminal event moves a response out of PENDING/SIGNED; other
-    // event types (opened, sent, reminder…) aren't tracked here.
-    if (body?.event !== "DOCUMENT_COMPLETED") {
+    // event types (opened, sent, reminder…) aren't tracked here. Documenso's
+    // dashboard labels triggers lowercase-dotted ("document.completed") while
+    // their own docs show the payload's `event` field uppercase-underscored
+    // ("DOCUMENT_COMPLETED") -- normalize instead of trusting either form.
+    const normalizedEvent = body?.event
+      ?.toUpperCase()
+      .replace(/\./g, "_");
+
+    if (normalizedEvent !== "DOCUMENT_COMPLETED") {
+      console.log("[signing webhook] ignoring event", body?.event);
       return res.status(200).json({ ignored: true });
     }
 
