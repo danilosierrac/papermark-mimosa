@@ -206,6 +206,8 @@ export default function AgreementSection({
   const [isCompletingSession, setIsCompletingSession] = useState(false);
   const [isDownloadingSigned, setIsDownloadingSigned] = useState(false);
   const [session, setSession] = useState<AgreementSigningSession | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const currentSigningIdentityRef = useRef(currentSigningIdentity);
   const sessionIdentityRef = useRef<string | null>(null);
   // Holds the in-flight session-creation request so a pre-warm (hover/focus)
@@ -533,6 +535,104 @@ export default function AgreementSection({
     ensureSigningSession,
   ]);
 
+  // Stops polling on unmount so a closed/abandoned tab doesn't keep hitting
+  // the status endpoint forever.
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const applySignedStatus = (result: CompletedSigningResult) => {
+    setData((prevData) => ({
+      ...prevData,
+      hasConfirmedAgreement: true,
+      agreementResponseId: result.id,
+      agreementStatus: result.signingStatus,
+    }));
+
+    if (linkId && agreementId) {
+      persistSignedAgreementResponse({
+        linkId,
+        agreementId,
+        agreementResponseId: result.id,
+        signingStatus: result.signingStatus,
+      });
+    }
+  };
+
+  const stopPolling = () => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    setIsCheckingStatus(false);
+  };
+
+  // Pass-through demo path: signing happens on Documenso's own hosted page
+  // in a new tab (not embedded — the embed requires a paid Documenso plan),
+  // so completion isn't a postMessage callback like handleDocumentCompleted
+  // expects. Poll our own status endpoint instead, which the signing
+  // webhook (pages/api/webhooks/signing/documenso.ts) keeps current
+  // independent of whether this tab is even still open.
+  const checkSigningStatus = async (
+    activeSession: AgreementSigningSession,
+  ): Promise<boolean> => {
+    if (!linkId || !agreementId) return false;
+
+    try {
+      const params = new URLSearchParams({
+        linkId,
+        agreementId,
+        agreementResponseId: activeSession.agreementResponseId,
+      });
+      const response = await fetch(
+        `/api/agreements/signing/status?${params.toString()}`,
+      );
+      if (!response.ok) return false;
+
+      const result = (await response.json()) as SignedAgreementStatus;
+      const isDone =
+        !!result.signed &&
+        (result.signingStatus === "SIGNED" ||
+          result.signingStatus === "COMPLETED");
+
+      if (isDone && result.agreementResponseId && result.signingStatus) {
+        applySignedStatus({
+          id: result.agreementResponseId,
+          signingStatus: result.signingStatus,
+        });
+        stopPolling();
+        setIsSheetOpen(false);
+        toast.success("Agreement signed successfully.");
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const openHostedSigningTab = (activeSession: AgreementSigningSession) => {
+    setIsSheetOpen(true);
+    window.open(
+      `${activeSession.host}/sign/${activeSession.token}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
+    setIsCheckingStatus(true);
+    pollIntervalRef.current = setInterval(() => {
+      void checkSigningStatus(activeSession);
+    }, 3000);
+  };
+
   const handleOpenSigningSheet = async () => {
     if (!hasRequiredSigningIdentity) {
       toast.error(signingIdentityPrompt);
@@ -551,8 +651,8 @@ export default function AgreementSection({
       return;
     }
 
-    if (hasCurrentSigningSession) {
-      setIsSheetOpen(true);
+    if (hasCurrentSigningSession && session) {
+      openHostedSigningTab(session);
       return;
     }
 
@@ -562,7 +662,7 @@ export default function AgreementSection({
       const preparedSession = await ensureSigningSession();
 
       if (preparedSession) {
-        setIsSheetOpen(true);
+        openHostedSigningTab(preparedSession);
       }
     } catch (error) {
       toast.error(
@@ -724,41 +824,59 @@ export default function AgreementSection({
           </div>
         </div>
 
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          {/* Width capped at max-w-3xl on purpose: without the white-label flag we can't hide Documenso's sidebar via CSS, so staying below its 768px breakpoint makes the embed render sidebar-less. Don't widen or the sidebar reappears. */}
-          <SheetContent className="w-[96vw] bg-background px-0 sm:max-w-3xl">
-            <SheetHeader className="px-6 pt-6 text-start">
+        <Sheet
+          open={isSheetOpen}
+          onOpenChange={(open) => {
+            setIsSheetOpen(open);
+            if (!open) stopPolling();
+          }}
+        >
+          <SheetContent className="w-[96vw] bg-background sm:max-w-md">
+            <SheetHeader className="pt-6 text-start">
               <SheetTitle>Sign {agreementName}</SheetTitle>
               <SheetDescription>
-                Complete the embedded signing flow to continue into the{" "}
-                {protectedLinkLabel}.
+                Signing opened in a new tab. Come back here once you&apos;re
+                done, we&apos;ll pick it up automatically.
               </SheetDescription>
             </SheetHeader>
 
-            <div className="h-[calc(100%-96px)] px-4 pb-4 pt-2 sm:px-6">
+            <div className="flex flex-col items-center gap-4 px-1 py-8 text-center">
+              <FileSignatureIcon
+                className="h-8 w-8 opacity-60"
+                aria-hidden="true"
+              />
+              <p className="text-sm text-muted-foreground">
+                {isCheckingStatus
+                  ? "Waiting for the signature to complete…"
+                  : "Preparing signing flow…"}
+              </p>
               {session ? (
-                <div className="h-full overflow-hidden rounded-lg border">
-                  <EmbedDirectTemplate
-                    className="h-full w-full"
-                    host={session.host}
-                    token={session.token}
-                    externalId={session.externalId}
-                    darkModeDisabled
-                    cssVars={signingEmbedCssVars}
-                    css={SIGNING_EMBED_CSS}
-                    email={data.email ?? undefined}
-                    lockEmail={!!data.email}
-                    name={data.name ?? undefined}
-                    lockName={!!data.name}
-                    onDocumentCompleted={handleDocumentCompleted}
-                    onDocumentError={(error) => toast.error(error)}
-                  />
-                </div>
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                  Preparing signing flow...
-                </div>
-              )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    window.open(
+                      `${session.host}/sign/${session.token}`,
+                      "_blank",
+                      "noopener,noreferrer",
+                    )
+                  }
+                >
+                  Reopen signing tab
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={!session}
+                onClick={() => {
+                  if (session) void checkSigningStatus(session);
+                }}
+              >
+                I&apos;ve finished signing, check now
+              </Button>
             </div>
           </SheetContent>
         </Sheet>
