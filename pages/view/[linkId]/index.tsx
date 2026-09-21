@@ -187,7 +187,7 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
             metaDescription: publicMeta.metaDescription,
             metaImage: publicMeta.metaImage,
             metaFavicon: publicMeta.metaFavicon,
-            metaUrl: `https://www.papermark.com/view/${linkId}`,
+            metaUrl: `${process.env.NEXT_PUBLIC_BASE_URL || "https://docs.mimosa.computer"}/view/${linkId}`,
           },
           // Internal-only deployment: never show the "get your own" upsell.
           showPoweredByBanner: false,
