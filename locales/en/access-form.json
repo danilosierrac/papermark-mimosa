@@ -1,29 +1,29 @@
 {
   "welcome": {
-    "fallback": "Your action is requested to continue"
+    "fallback": "your action is requested to continue"
   },
   "buttons": {
-    "continue": "Continue",
-    "verifying": "Verifying..."
+    "continue": "continue",
+    "verifying": "verifying…"
   },
   "fields": {
     "email": {
-      "label": "Email address",
-      "placeholder": "Enter email",
-      "errorInvalid": "Please enter a valid email address",
-      "sharedWithSender": "This data will be shared with the sender.",
-      "sharedWithProvider": "This data will be shared with the content provider."
+      "label": "email address",
+      "placeholder": "enter email",
+      "errorInvalid": "enter a valid email address",
+      "sharedWithSender": "this will be shared with the sender.",
+      "sharedWithProvider": "this will be shared with the content provider."
     },
     "password": {
-      "label": "Passcode",
-      "placeholder": "Enter passcode"
+      "label": "passcode",
+      "placeholder": "enter passcode"
     },
     "name": {
-      "label": "Name",
-      "placeholder": "Enter your full name"
+      "label": "name",
+      "placeholder": "enter your full name"
     },
     "url": {
-      "errorInvalid": "Please enter a valid URL starting with https://"
+      "errorInvalid": "enter a valid URL starting with https://"
     },
     "phone": {
       "placeholderDefault": "+1 123 456 7890"
@@ -33,24 +33,21 @@
     "fallbackPrefix": "I have reviewed and agree to the terms of this"
   },
   "verification": {
-    "title": "Verify your email address",
-    "description": "Enter the six digit verification code sent to <email>{{email}}</email>",
-    "errorInvalid": "Invalid code. Please try again.",
-    "noEmail": "Didn't receive the email?",
-    "resending": "Resending code...",
-    "resendIn": "Resend Code ({{seconds}}s)",
-    "resend": "Resend Code"
+    "title": "verify your email address",
+    "description": "enter the six digit verification code sent to <email>{{email}}</email>",
+    "errorInvalid": "invalid code, try again.",
+    "noEmail": "didn't receive the email?",
+    "resending": "resending code…",
+    "resendIn": "resend code ({{seconds}}s)",
+    "resend": "resend code"
   },
   "footer": {
-    "sharedSecurelyVia": "This document is securely shared with you using",
-    "sharedSecurelyViaDataroom": "This data room is securely shared with you using",
-    "papermark": "Papermark",
-    "seeHowWeProtect": "See how we protect your data in our",
-    "privacyPolicy": "Privacy Policy"
+    "privacyNote": "This link may record when it's opened, to confirm receipt and understand how it's read. We don't store IP addresses, and these records are deleted after twelve months.",
+    "privacyPolicy": "read more"
   },
   "reauth": {
-    "title": "Verify it's you",
-    "description": "This file was uploaded by you. To reopen it, confirm you control <email>{{email}}</email>.",
-    "otpDescription": "We sent a 6-digit code to <email>{{email}}</email>. Enter it below to access your uploaded file."
+    "title": "verify it's you",
+    "description": "this file was uploaded by you. To reopen it, confirm you control <email>{{email}}</email>.",
+    "otpDescription": "we sent a 6-digit code to <email>{{email}}</email>. Enter it below to access your uploaded file."
   }
 }

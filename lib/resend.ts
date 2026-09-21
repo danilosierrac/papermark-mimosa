@@ -47,17 +47,7 @@ export const sendEmail = async ({
   const html = await render(react);
   const plainText = toPlainText(html);
 
-  const fromAddress =
-    from ??
-    (marketing
-      ? "Marc from Papermark <marc@updates.papermark.com>"
-      : system
-        ? "Papermark <system@papermark.com>"
-        : verify
-          ? "Papermark <system@verify.papermark.com>"
-          : !!scheduledAt
-            ? "Marc Seitz <marc@papermark.com>"
-            : "Marc from Papermark <marc@papermark.com>");
+  const fromAddress = from ?? "mimosa docs <notifications@mimosa.computer>";
 
   try {
     const { data, error } = await resend.emails.send(
@@ -65,7 +55,7 @@ export const sendEmail = async ({
         from: fromAddress,
         to: test ? "delivered@resend.dev" : to,
         cc: cc,
-        replyTo: marketing ? "marc@papermark.com" : replyTo,
+        replyTo: replyTo ?? "hello@mimosaagency.com",
         subject,
         react,
         scheduledAt,

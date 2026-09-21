@@ -19,7 +19,9 @@ export default async function DomainMiddleware(req: NextRequest) {
       }
     }
 
-    return NextResponse.redirect(new URL("https://www.papermark.com", req.url));
+    // No redirect configured for this custom domain's root: land on login
+    // rather than an external site.
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   const url = req.nextUrl.clone();

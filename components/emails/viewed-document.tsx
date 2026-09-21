@@ -30,18 +30,23 @@ export default function ViewedDocument({
   return (
     <Html>
       <Head />
-      <Preview>See who visited your document</Preview>
+      <Preview>someone opened {documentName}</Preview>
       <Tailwind>
-        <Body className="mx-auto my-auto bg-white font-sans">
+        <Body
+          className="mx-auto my-auto bg-white"
+          style={{
+            fontFamily:
+              "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+          }}
+        >
           <Container className="mx-auto my-10 w-[465px] p-5">
-            <Text className="mx-0 mb-8 mt-4 p-0 text-center text-2xl font-normal">
-              <span className="font-bold tracking-tighter">Papermark</span>
+            <Text className="mx-0 mb-8 mt-4 p-0 text-center text-xl font-semibold lowercase tracking-tight text-[#242424]">
+              mimosa
             </Text>
-            <Text className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              New Document Visitor
+            <Text className="mx-0 my-7 p-0 text-center text-lg font-semibold text-[#242424]">
+              a document was opened
             </Text>
-            <Text className="text-sm leading-6 text-black">
-              Your document{" "}
+            <Text className="text-sm leading-6 text-[#242424]">
               <span className="font-semibold">{documentName}</span> was just
               viewed by{" "}
               <span className="font-semibold">
@@ -55,28 +60,20 @@ export default function ViewedDocument({
               ) : null}{" "}
               from the link <span className="font-semibold">{linkName}</span>.
             </Text>
-            <Text className="text-sm leading-6 text-black">
-              You can get the detailed engagement insights like time-spent per
-              page and total duration for this document on Papermark.
-            </Text>
             <Section className="my-8 text-center">
               <Button
-                className="rounded bg-black text-center text-xs font-semibold text-white no-underline"
-                href={`https://app.papermark.com/documents/${documentId}`}
+                className="rounded bg-[#242424] text-center text-xs font-semibold text-white no-underline"
+                href={`https://docs.mimosa.computer/documents/${documentId}`}
                 style={{ padding: "12px 20px" }}
               >
-                See my document insights
+                view document insights
               </Button>
             </Section>
             <Footer
               footerText={
                 <>
-                  If you have any feedback or questions about this email, simply
-                  reply to it. I&apos;d love to hear from you!
-                  <br />
-                  <br />
-                  To stop email notifications for this link, edit the link and
-                  uncheck &quot;Receive email notification&quot;.
+                  to stop email notifications for this link, edit it and
+                  uncheck &quot;receive email notification&quot;.
                 </>
               }
             />

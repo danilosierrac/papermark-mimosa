@@ -189,8 +189,9 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
             metaFavicon: publicMeta.metaFavicon,
             metaUrl: `https://www.papermark.com/view/${linkId}`,
           },
-          showPoweredByBanner: link.showBanner || teamPlan === "free",
-          showAccountCreationSlide: link.showBanner || teamPlan === "free",
+          // Internal-only deployment: never show the "get your own" upsell.
+          showPoweredByBanner: false,
+          showAccountCreationSlide: false,
           useAdvancedExcelViewer: advancedExcelEnabled,
           hideFooterOnAccessForm: hideFooterOnAccessFormEnabled,
           logoOnAccessForm: logoOnAccessFormEnabled,
@@ -298,7 +299,7 @@ function ViewPageInner({
             favicon={meta.metaFavicon}
             enableBranding={meta.enableCustomMetatag ?? false}
             title={
-              meta.metaTitle ?? `${link?.document?.name} | Powered by Papermark`
+              meta.metaTitle ?? `${link?.document?.name} · mimosa`
             }
             description={meta.metaDescription ?? null}
             imageUrl={meta.metaImage ?? null}
@@ -338,7 +339,7 @@ function ViewPageInner({
           favicon={meta.metaFavicon}
           enableBranding={meta.enableCustomMetatag ?? false}
           title={
-            meta.metaTitle ?? `${link?.document?.name} | Powered by Papermark`
+            meta.metaTitle ?? `${link?.document?.name} · mimosa`
           }
           description={meta.metaDescription ?? null}
           imageUrl={meta.metaImage ?? null}

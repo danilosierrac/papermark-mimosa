@@ -138,16 +138,16 @@ export default function Nav({
             alt="Logo"
           />
         );
-      case "papermark":
+      case "mimosa":
+        // The SVG's `fill="currentColor"` can't pick up navColorPalette
+        // here since it's loaded via <img src>, not inlined — it always
+        // renders in its own ink color regardless of link theme.
         return (
-          <Link
-            href={`https://www.papermark.com?utm_campaign=navbar&utm_medium=navbar&utm_source=papermark-${linkId}`}
-            target="_blank"
-            className="text-2xl font-bold tracking-tighter"
-            style={{ color: navColorPalette.textColor }}
-          >
-            Papermark
-          </Link>
+          <img
+            className="h-4 w-auto sm:h-[18px]"
+            src="/_static/mimosa-wordmark.svg"
+            alt="mimosa"
+          />
         );
       case "none":
         return null;

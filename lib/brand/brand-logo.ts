@@ -5,7 +5,7 @@ export type BrandLogoFields = {
 
 export type ResolvedBrandLogo =
   | { kind: "custom"; src: string }
-  | { kind: "papermark" }
+  | { kind: "mimosa" }
   | { kind: "none" };
 
 /**
@@ -17,5 +17,5 @@ export function resolveBrandLogo(
 ): ResolvedBrandLogo {
   if (brand?.hideLogo) return { kind: "none" };
   if (brand?.logo) return { kind: "custom", src: brand.logo };
-  return { kind: "papermark" };
+  return { kind: "mimosa" };
 }

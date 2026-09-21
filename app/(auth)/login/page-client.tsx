@@ -34,12 +34,11 @@ export default function Login() {
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-black px-4">
       <div className="flex w-full max-w-xs flex-col items-center">
-        <h1 className="text-3xl font-bold tracking-tight text-white">
-          mimosa
-        </h1>
-        <p className="mt-1 text-xs uppercase tracking-widest text-gray-500">
-          documents
-        </p>
+        <img
+          src="/_static/mimosa-logo-white.png"
+          alt="mimosa"
+          className="h-8 w-auto"
+        />
 
         <form onSubmit={handleSubmit} className="mt-10 w-full space-y-3">
           <input
@@ -58,12 +57,6 @@ export default function Login() {
             {loading ? "Checking…" : "Enter"}
           </button>
         </form>
-
-        <p className="mt-10 text-center text-xs text-gray-600">
-          Everything mimosa shares.
-          <br />
-          Not public.
-        </p>
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ export default function OtpEmailVerification({
   email = "test@example.co",
   code = "123456",
   isDataroom = false,
-  logo = { kind: "papermark" },
+  logo = { kind: "mimosa" },
 }: {
   email: string;
   code: string;
@@ -34,11 +34,11 @@ export default function OtpEmailVerification({
             <Img src={logo.src} alt="Logo" width="120" height="36" />
           </Section>
         );
-      case "papermark":
+      case "mimosa":
         return (
           <Section className="mt-8">
-            <Text className="text-2xl font-bold tracking-tighter">
-              Papermark
+            <Text className="text-xl font-semibold lowercase tracking-tight text-[#242424]">
+              mimosa
             </Text>
           </Section>
         );
@@ -62,8 +62,8 @@ export default function OtpEmailVerification({
               Your verification code
             </Text>
             <Text className="text-sm leading-6 text-neutral-600">
-              A verification code was requested to view the {resourceLabel}{" "}
-              shared with you on Papermark. Use this code to continue:
+              a verification code was requested to view the {resourceLabel}{" "}
+              shared with you. use this code to continue:
             </Text>
             <Section className="my-6">
               <Text
@@ -87,12 +87,8 @@ export default function OtpEmailVerification({
             </Text>
             <Hr className="my-6" />
             <Section className="text-gray-400">
-              <Text className="text-xs text-neutral-500">
-                Papermark, Inc.
-                <br />
-                1111B S Governors Ave #28117
-                <br />
-                Dover, DE 19904
+              <Text className="text-xs lowercase text-neutral-500">
+                mimosa GmbH · Greifswalder Str. 23, 10405 Berlin
               </Text>
             </Section>
           </Container>

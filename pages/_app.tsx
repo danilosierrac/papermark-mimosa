@@ -34,49 +34,38 @@ export default function App({
   return (
     <>
       <Head>
-        <title>Papermark | The Open Source DocSend Alternative</title>
-        <meta name="theme-color" content="#000000" key="theme-color" />
+        <title>mimosa docs</title>
+        <meta name="theme-color" content="#242424" key="theme-color" />
         <meta
           name="description"
-          content="Papermark is an open-source document sharing alternative to DocSend with built-in analytics."
+          content="Share documents, the mimosa way."
           key="description"
         />
-        <meta
-          property="og:title"
-          content="Papermark | The Open Source DocSend Alternative"
-          key="og-title"
-        />
+        <meta property="og:title" content="mimosa docs" key="og-title" />
         <meta
           property="og:description"
-          content="Papermark is an open-source document sharing alternative to DocSend with built-in analytics."
+          content="Share documents, the mimosa way."
           key="og-description"
         />
         <meta
-          property="og:image"
-          content="https://www.papermark.com/_static/meta-image.png"
-          key="og-image"
-        />
-        <meta
           property="og:url"
-          content="https://www.papermark.com"
+          content="https://docs.mimosa.computer"
           key="og-url"
         />
         <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@papermarkio" />
-        <meta name="twitter:creator" content="@papermarkio" />
-        <meta name="twitter:title" content="Papermark" key="tw-title" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="mimosa docs" key="tw-title" />
         <meta
           name="twitter:description"
-          content="Papermark is an open-source document sharing alternative to DocSend with built-in analytics."
+          content="Share documents, the mimosa way."
           key="tw-description"
         />
-        <meta
-          name="twitter:image"
-          content="https://www.papermark.com/_static/meta-image.png"
-          key="tw-image"
+        <link
+          rel="icon"
+          type="image/svg+xml"
+          href="/_static/favicon.svg"
+          key="favicon"
         />
-        <link rel="icon" href="/favicon.ico" key="favicon" />
       </Head>
       <SessionProvider session={session}>
         <PostHogCustomProvider>

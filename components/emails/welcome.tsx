@@ -127,7 +127,7 @@ const WelcomeEmail = ({ name }: WelcomeEmailProps) => {
               </Link>
             </Section>
 
-            <Footer marketing />
+            <Footer />
           </Container>
         </Body>
       </Tailwind>

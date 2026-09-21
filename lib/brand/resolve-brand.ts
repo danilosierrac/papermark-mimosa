@@ -136,7 +136,7 @@ export function resolvePublicLinkMeta({
       metaTitle: link.metaTitle ?? defaultTitle,
       metaDescription: link.metaDescription ?? null,
       metaImage: link.metaImage ?? null,
-      metaFavicon: link.metaFavicon ?? "/favicon.ico",
+      metaFavicon: link.metaFavicon ?? "/_static/favicon.svg",
     };
   }
 
@@ -146,7 +146,7 @@ export function resolvePublicLinkMeta({
       metaTitle: teamBrand.linkPreviewTitle ?? defaultTitle,
       metaDescription: teamBrand.linkPreviewDescription ?? null,
       metaImage: teamBrand.linkPreviewImage ?? null,
-      metaFavicon: teamBrand.linkPreviewFavicon ?? "/favicon.ico",
+      metaFavicon: teamBrand.linkPreviewFavicon ?? "/_static/favicon.svg",
     };
   }
 
@@ -155,6 +155,6 @@ export function resolvePublicLinkMeta({
     metaTitle: null,
     metaDescription: null,
     metaImage: null,
-    metaFavicon: "/favicon.ico",
+    metaFavicon: "/_static/favicon.svg",
   };
 }

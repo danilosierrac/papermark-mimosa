@@ -99,8 +99,7 @@ export default function AccessForm({
   const customPrivacyPolicyUrl =
     brand && "privacyPolicyUrl" in brand ? brand.privacyPolicyUrl : null;
   const privacyPolicyUrl =
-    customPrivacyPolicyUrl ||
-    `${process.env.NEXT_PUBLIC_MARKETING_URL}/privacy`;
+    customPrivacyPolicyUrl || "https://mimosaagency.com/imprint";
 
   const isSigningAgreement =
     signingProvider === "DOCUMENSO" || agreementContentType === "SIGNING";
@@ -278,49 +277,28 @@ export default function AccessForm({
             </form>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-0.5">
+        <div className="flex flex-col items-center gap-0.5 px-6">
           {!hideFooterOnAccessForm ? (
             <p
-              className="text-center text-sm tracking-tight"
+              className="max-w-md text-center text-sm tracking-tight"
               style={{ color: accessFormTheme.subtleTextColor }}
             >
-              {linkType === "DATAROOM_LINK"
-                ? t(
-                    "footer.sharedSecurelyViaDataroom",
-                    "This data room is securely shared with you using",
-                  )
-                : t(
-                    "footer.sharedSecurelyVia",
-                    "This document is securely shared with you using",
-                  )}{" "}
+              {t(
+                "footer.privacyNote",
+                "This link may record when it's opened, to confirm receipt and understand how it's read. We don't store IP addresses, and these records are deleted after twelve months.",
+              )}{" "}
               <a
-                href="https://www.papermark.com"
+                href={privacyPolicyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium"
+                className="inline-flex items-center gap-0.5 font-medium"
                 style={{ color: accessFormTheme.mutedTextColor }}
               >
-                {t("footer.papermark", "Papermark")}
+                <span>{t("footer.privacyPolicy", "Read more")}</span>
+                <ArrowUpRightIcon className="h-3 w-3" />
               </a>
-              .
             </p>
           ) : null}
-          <p
-            className="text-center text-sm tracking-tight"
-            style={{ color: accessFormTheme.subtleTextColor }}
-          >
-            {t("footer.seeHowWeProtect", "See how we protect your data in our")}{" "}
-            <a
-              href={privacyPolicyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-0.5"
-              style={{ color: accessFormTheme.mutedTextColor }}
-            >
-              <span>{t("footer.privacyPolicy", "Privacy Policy")}</span>
-              <ArrowUpRightIcon className="h-3 w-3" />
-            </a>
-          </p>
         </div>
       </div>
     </AccessFormThemeProvider>
