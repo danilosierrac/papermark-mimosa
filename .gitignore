@@ -62,6 +62,8 @@ scripts/*
 !scripts/check-brand-logo.ts
 !scripts/check-mcp-schema-dialect.ts
 !scripts/extend-trial.ts
+# generates a Documenso signing template from a PDF's own named form fields
+!scripts/create-signing-template.mjs
 !scripts/local/
 !.github/scripts/
 

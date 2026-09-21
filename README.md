@@ -59,9 +59,11 @@ This repository is licensed under AGPL-3.0, see `LICENSE`. The upstream director
   cron, notification prefs), but the `ee/` strip removed the entire
   dashboard UI to create/manage a dataroom and the public multi-document
   viewer — both need to be built, not restyled. Not started.
-- DocSend-style signature fields on documents (agreement, budget), once
-  Spaces exists. Documenso self-hosted instead of the hosted default.
-  Not started.
+- DocSend-style signature fields on documents (agreement, budget). — live,
+  see [`docs/SIGNING.md`](docs/SIGNING.md). Per-link, doesn't need Spaces.
+  Open item: the in-app embedded signing flow needs a paid Documenso plan
+  (free tier blocks it); hosted (non-embedded) signing and the webhook
+  work today on the free tier.
 
 ## Credits
 
