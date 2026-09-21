@@ -182,7 +182,7 @@ export default function AccessForm({
         }}
       >
         {/* Light Navbar */}
-        {logoOnAccessForm && resolvedBrandLogo.kind === "custom" ? (
+        {resolvedBrandLogo.kind !== "none" ? (
           <nav
             className="w-full"
             style={{
@@ -190,11 +190,19 @@ export default function AccessForm({
             }}
           >
             <div className="flex h-16 items-center justify-start px-2 sm:px-6 lg:px-8">
-              <img
-                src={resolvedBrandLogo.src}
-                alt="Brand Logo"
-                className="h-16 w-auto object-contain"
-              />
+              {resolvedBrandLogo.kind === "custom" ? (
+                <img
+                  src={resolvedBrandLogo.src}
+                  alt="Brand Logo"
+                  className="h-16 w-auto object-contain"
+                />
+              ) : (
+                <img
+                  src="/_static/mimosa-wordmark.svg"
+                  alt="mimosa"
+                  className="h-4 w-auto sm:h-[18px]"
+                />
+              )}
             </div>
           </nav>
         ) : null}
