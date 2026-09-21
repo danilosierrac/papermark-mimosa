@@ -1,6 +1,6 @@
 {
   "welcome": {
-    "fallback": "your action is requested to continue"
+    "fallback": "mimosa shared a document with you here. enter your email so we know it reached you."
   },
   "buttons": {
     "continue": "continue",
@@ -11,8 +11,8 @@
       "label": "email address",
       "placeholder": "enter email",
       "errorInvalid": "enter a valid email address",
-      "sharedWithSender": "this will be shared with the sender.",
-      "sharedWithProvider": "this will be shared with the content provider."
+      "sharedWithSender": "we'll share this with whoever sent the link, so they know it reached you.",
+      "sharedWithProvider": "we'll share this with the document's provider, so they know it reached you."
     },
     "password": {
       "label": "passcode",
