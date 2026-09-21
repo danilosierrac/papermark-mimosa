@@ -48,10 +48,20 @@ This repository is licensed under AGPL-3.0, see `LICENSE`. The upstream director
 
 ## Roadmap
 
-- Documenso for signatures, self-hosted instead of the hosted default.
-- Storage, email, and login on our own services.
-- A mimosa re-skin.
-- A basic multi-document link.
+- Storage, email, and login on our own services. — done
+- A mimosa re-skin of the client-facing viewer and email. — done, see the Asana card; dashboard/internal UI still Papermark-styled
+- **Spaces**: one link, several documents, email gate, download toggle,
+  expiry, per-document and per-page analytics, in the mimosa design
+  language — DocSend's "Space" equivalent. The Prisma schema is intact
+  (`Dataroom`, `DataroomDocument`, `DataroomFolder`, `DataroomBrand`,
+  plus the Q&A/diligence models) and a handful of backend helpers
+  survived (`lib/emails/send-dataroom-notification.ts`, dataroom digest
+  cron, notification prefs), but the `ee/` strip removed the entire
+  dashboard UI to create/manage a dataroom and the public multi-document
+  viewer — both need to be built, not restyled. Not started.
+- DocSend-style signature fields on documents (agreement, budget), once
+  Spaces exists. Documenso self-hosted instead of the hosted default.
+  Not started.
 
 ## Credits
 
