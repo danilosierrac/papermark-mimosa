@@ -20,6 +20,12 @@ function isAnalyticsPath(path: string) {
 }
 
 function isCustomDomain(host: string) {
+  // NEXT_PUBLIC_APP_BASE_HOST is this deployment's own primary host (e.g.
+  // docs.mimosa.computer) -- it runs the full app (dashboard, login), not
+  // just public view links, so it must never be treated as a client's
+  // custom viewing domain.
+  const primaryHost = process.env.NEXT_PUBLIC_APP_BASE_HOST;
+
   return (
     (process.env.NODE_ENV === "development" &&
       (host?.includes(".local") || host?.includes("papermark.dev"))) ||
@@ -28,7 +34,8 @@ function isCustomDomain(host: string) {
         host?.includes("localhost") ||
         host?.includes("papermark.io") ||
         host?.includes("papermark.com") ||
-        host?.endsWith(".vercel.app")
+        host?.endsWith(".vercel.app") ||
+        (primaryHost && host === primaryHost)
       ))
   );
 }
