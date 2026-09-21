@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PP Mori is a licensed font, so the binaries aren't committed to this
+   public repo -- they're proxied from a private R2 bucket instead
+   (see pages/api/_static/fonts/[file].ts). */
+@font-face {
+  font-family: "PP Mori";
+  src:
+    url("/api/_static/fonts/PPMori-Regular.woff2") format("woff2"),
+    url("/api/_static/fonts/PPMori-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PP Mori";
+  src:
+    url("/api/_static/fonts/PPMori-Semibold.woff2") format("woff2"),
+    url("/api/_static/fonts/PPMori-Semibold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-brand {
+  font-family:
+    "PP Mori",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
 @layer utilities {
   @keyframes fade-in {
     from {

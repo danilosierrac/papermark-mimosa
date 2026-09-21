@@ -1,9 +1,6 @@
 import { Metadata } from "next";
-import { Inter } from "next/font/google";
 
 import "@/styles/globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
 
 const data = {
   description: "Share documents, the mimosa way.",
@@ -38,7 +35,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className="font-brand">{children}</body>
     </html>
   );
 }

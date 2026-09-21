@@ -1,5 +1,4 @@
 import type { AppProps } from "next/app";
-import { Inter } from "next/font/google";
 import Head from "next/head";
 
 import { TeamProvider } from "@/context/team-context";
@@ -18,8 +17,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "@/styles/globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
 
 function LastVisitedTracker() {
   useTrackLastVisited();
@@ -71,7 +68,7 @@ export default function App({
         <PostHogCustomProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
             <NuqsAdapter>
-              <main className={inter.className}>
+              <main className="font-brand">
                 <Toaster closeButton />
                 <TooltipProvider delayDuration={100}>
                   {EXCLUDED_PATHS.includes(router.pathname) ? (
