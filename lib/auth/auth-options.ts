@@ -1,15 +1,10 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import PasskeyProvider from "@teamhanko/passkeys-next-auth-provider";
 import { type NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 import LinkedInProvider from "next-auth/providers/linkedin";
 
 import { identifyUser, trackAnalytics } from "@/lib/analytics";
 import { qstash } from "@/lib/cron";
-import { sendVerificationRequestEmail } from "@/lib/emails/send-verification-request";
-import hanko from "@/lib/hanko";
 import prisma from "@/lib/prisma";
 import { CustomUser } from "@/lib/types";
 
@@ -51,44 +46,6 @@ export const authOptions: NextAuthOptions = {
         };
       },
       allowDangerousEmailAccountLinking: true,
-    }),
-    EmailProvider({
-      async sendVerificationRequest({ identifier, url }) {
-        const hasValidNextAuthUrl = !!process.env.NEXTAUTH_URL;
-        let finalUrl = url;
-
-        if (!hasValidNextAuthUrl) {
-          const mainDomainUrl = getMainDomainUrl();
-          const urlObj = new URL(url);
-          const mainDomainObj = new URL(mainDomainUrl);
-          urlObj.hostname = mainDomainObj.hostname;
-          urlObj.protocol = mainDomainObj.protocol;
-          urlObj.port = mainDomainObj.port || "";
-
-          finalUrl = urlObj.toString();
-        }
-
-        if (process.env.NODE_ENV === "development") {
-          await sendVerificationRequestEmail({
-            url: finalUrl,
-            email: identifier,
-          });
-          console.log("[Login Email Sent] Check your inbox for:", identifier);
-        } else {
-          await sendVerificationRequestEmail({
-            url: finalUrl,
-            email: identifier,
-          });
-        }
-      },
-    }),
-    PasskeyProvider({
-      tenant: hanko,
-      async authorize({ userId }) {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) return null;
-        return user;
-      },
     }),
   ],
   adapter: PrismaAdapter(prisma),
