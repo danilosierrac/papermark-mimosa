@@ -4,7 +4,7 @@
     "updatedOn": "Updated {{date}}",
     "lastUpdated": "Last updated {{date}}",
     "secureFooter": "Secured by",
-    "papermark": "mimosa",
+    "brandName": "mimosa",
     "copyright": "© {{year}}{{name}}"
   },
   "tabs": {
