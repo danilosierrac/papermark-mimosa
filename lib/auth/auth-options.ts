@@ -105,7 +105,11 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        domain: VERCEL_DEPLOYMENT ? ".papermark.com" : undefined,
+        // No `domain` override: this fork runs on *.vercel.app, not
+        // papermark.com — a hardcoded domain here made the browser silently
+        // reject the session cookie on every login (Google, LinkedIn, and
+        // the internal-password fallback all "succeeded" server-side but
+        // never actually created a session, bouncing back to /login).
         secure: VERCEL_DEPLOYMENT,
       },
     },
