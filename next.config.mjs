@@ -401,6 +401,21 @@ function prepareRemotePatterns() {
     });
   }
 
+  // Without a CDN distribution host, page images are served straight from
+  // the S3-compatible upload endpoint's own host (e.g. R2) via presigned
+  // URLs — next/image refuses to render any host not in this allowlist, so
+  // that raw endpoint host needs one too.
+  if (process.env.NEXT_PRIVATE_UPLOAD_ENDPOINT) {
+    try {
+      const endpointHostname = new URL(
+        process.env.NEXT_PRIVATE_UPLOAD_ENDPOINT,
+      ).hostname;
+      patterns.push({ protocol: "https", hostname: endpointHostname });
+    } catch {
+      // malformed endpoint URL; skip rather than crash the build
+    }
+  }
+
   if (process.env.NEXT_PRIVATE_ADVANCED_UPLOAD_DISTRIBUTION_HOST) {
     patterns.push({
       protocol: "https",
