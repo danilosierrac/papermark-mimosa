@@ -24,6 +24,7 @@ export const sendEmail = async ({
   scheduledAt,
   unsubscribeUrl,
   idempotencyKey,
+  attachments,
 }: {
   to: string;
   subject: string;
@@ -38,6 +39,7 @@ export const sendEmail = async ({
   scheduledAt?: string;
   unsubscribeUrl?: string;
   idempotencyKey?: string;
+  attachments?: { filename: string; content: Buffer }[];
 }) => {
   if (!resend) {
     // Throw an error if resend is not initialized
@@ -60,6 +62,7 @@ export const sendEmail = async ({
         react,
         scheduledAt,
         text: plainText,
+        attachments,
         headers: {
           // Reusing an idempotency key with a changed payload is a 409, so the
           // ref id has to come from the key rather than a fresh nanoid.

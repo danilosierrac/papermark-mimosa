@@ -12,6 +12,7 @@ import {
   getSigningWebhookSecret,
 } from "./client";
 import { getEnvelope } from "./envelopes";
+import { notifyAgreementSigned } from "./notify";
 
 export const SIGNING_PROVIDER_SCHEMA = z.enum(["LEGACY", "DOCUMENSO"]);
 export const SIGNING_STATUS_SCHEMA = z.enum([
@@ -737,6 +738,7 @@ export const syncAgreementResponseWithSigningDocument = async ({
         agreement: {
           select: {
             id: true,
+            name: true,
             teamId: true,
             signingEnvelopeId: true,
             signingTemplateId: true,
@@ -811,6 +813,31 @@ export const syncAgreementResponseWithSigningDocument = async ({
       },
     },
   });
+
+  // Email both sides their copy the moment this response first reaches a
+  // signed state -- gated on the *previous* status so a re-sync (dashboard
+  // "sync" button, a retried webhook) never re-sends it.
+  const wasAlreadySigned = getAgreementResponseSignedState(
+    existingResponse.signingStatus,
+  );
+  const isNowSigned = getAgreementResponseSignedState(
+    agreementResponse.signingStatus,
+  );
+  if (!wasAlreadySigned && isNowSigned && existingResponse.agreement) {
+    waitUntil(
+      notifyAgreementSigned({
+        agreementId: existingResponse.agreement.id,
+        agreementName: existingResponse.agreement.name,
+        teamId: existingResponse.agreement.teamId,
+        signerEmail: agreementResponse.signerEmail,
+        signerName: agreementResponse.signerName,
+        signingEnvelopeId: agreementResponse.signingEnvelopeId,
+        signingDocumentId: agreementResponse.signingDocumentId,
+      }).catch((error) => {
+        console.error("[signing] notifyAgreementSigned failed", error);
+      }),
+    );
+  }
 
   // Best-effort folder move via `waitUntil` so it survives past the response on serverless runtimes that freeze after responding.
   if (agreementResponse.agreement?.teamId) {
