@@ -1,5 +1,6 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import LinkedInProvider from "next-auth/providers/linkedin";
 
@@ -15,6 +16,24 @@ function getMainDomainUrl(): string {
     return process.env.NEXTAUTH_URL || "http://localhost:3000";
   }
   return process.env.NEXTAUTH_URL || "https://app.papermark.com";
+}
+
+function isAllowedLoginEmail(email: string): boolean {
+  const allowedDomains = (process.env.ALLOWED_LOGIN_DOMAINS ?? "")
+    .split(",")
+    .map((d) => d.trim().toLowerCase())
+    .filter(Boolean);
+  const allowedEmails = (process.env.ALLOWED_LOGIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (allowedDomains.length === 0 && allowedEmails.length === 0) {
+    return true;
+  }
+
+  const domain = email.split("@")[1];
+  return allowedEmails.includes(email) || allowedDomains.includes(domain);
 }
 
 export const authOptions: NextAuthOptions = {
@@ -47,6 +66,35 @@ export const authOptions: NextAuthOptions = {
       },
       allowDangerousEmailAccountLinking: true,
     }),
+    // Stopgap for this internal-only deployment: no real Resend/Google/LinkedIn
+    // OAuth apps have credentials set up yet, so this is the only path that
+    // needs no third-party account. Gated by the same email allowlist as
+    // every other provider, plus a shared password. Remove once Google or
+    // LinkedIn OAuth is properly configured.
+    CredentialsProvider({
+      id: "internal-password",
+      name: "Internal password",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email?.trim().toLowerCase();
+        const password = credentials?.password;
+        const sharedPassword = process.env.INTERNAL_LOGIN_PASSWORD;
+
+        if (!email || !password || !sharedPassword) return null;
+        if (password !== sharedPassword) return null;
+        if (!isAllowedLoginEmail(email)) return null;
+
+        const user = await prisma.user.upsert({
+          where: { email },
+          update: {},
+          create: { email },
+        });
+        return { id: user.id, email: user.email, name: user.name };
+      },
+    }),
   ],
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
@@ -68,23 +116,8 @@ export const authOptions: NextAuthOptions = {
       if (!email) return false;
 
       // Internal-only demo: restrict who can ever create a session, across
-      // every provider (magic link, Google, LinkedIn, passkey). Empty env
-      // var means unrestricted (local dev default).
-      const allowedDomains = (process.env.ALLOWED_LOGIN_DOMAINS ?? "")
-        .split(",")
-        .map((d) => d.trim().toLowerCase())
-        .filter(Boolean);
-      const allowedEmails = (process.env.ALLOWED_LOGIN_EMAILS ?? "")
-        .split(",")
-        .map((e) => e.trim().toLowerCase())
-        .filter(Boolean);
-
-      if (allowedDomains.length === 0 && allowedEmails.length === 0) {
-        return true;
-      }
-
-      const domain = email.split("@")[1];
-      return allowedEmails.includes(email) || allowedDomains.includes(domain);
+      // every provider. Empty env var means unrestricted (local dev default).
+      return isAllowedLoginEmail(email);
     },
     jwt: async (params) => {
       const { token, user, trigger, account } = params;

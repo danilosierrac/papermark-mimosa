@@ -7,12 +7,15 @@ import { useState } from "react";
 
 import { AlertCircle } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 import { LastUsed, useLastUsed } from "@/components/hooks/useLastUsed";
 import Google from "@/components/shared/icons/google";
 import LinkedIn from "@/components/shared/icons/linkedin";
 import { LogoCloud } from "@/components/shared/logo-cloud";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function Login() {
   const searchParams = useSearchParams();
@@ -21,11 +24,13 @@ export default function Login() {
   const isSSORequired = authError === "require-saml-sso";
 
   const [lastUsed, setLastUsed] = useLastUsed();
-  const authMethods = ["google", "linkedin"] as const;
+  const authMethods = ["google", "linkedin", "credentials"] as const;
   type AuthMethod = (typeof authMethods)[number];
   const [clickedMethod, setClickedMethod] = useState<AuthMethod | undefined>(
     undefined,
   );
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <div className="flex h-screen w-full flex-wrap">
@@ -109,6 +114,64 @@ export default function Login() {
               </Button>
             </div>
           </div>
+          <p className="py-4 text-center text-xs text-muted-foreground">
+            internal-only fallback while Google/LinkedIn OAuth apps are set up
+          </p>
+          <form
+            className="flex flex-col gap-2 px-4 sm:px-12"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setClickedMethod("credentials");
+              signIn("internal-password", {
+                email,
+                password,
+                redirect: false,
+                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+              }).then((res) => {
+                setClickedMethod(undefined);
+                if (res?.ok && !res?.error) {
+                  setLastUsed("credentials");
+                  window.location.href = next || "/dashboard";
+                } else {
+                  toast.error("Invalid email or password");
+                }
+              });
+            }}
+          >
+            <Label className="sr-only" htmlFor="email">
+              Email
+            </Label>
+            <Input
+              id="email"
+              placeholder="name@example.com"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex h-10 w-full rounded-[4px] border-0 bg-white px-3 py-2 text-sm text-gray-900 ring-1 ring-gray-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+            <Label className="sr-only" htmlFor="password">
+              Password
+            </Label>
+            <Input
+              id="password"
+              placeholder="Shared password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="flex h-10 w-full rounded-[4px] border-0 bg-white px-3 py-2 text-sm text-gray-900 ring-1 ring-gray-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+            <div className="relative">
+              <Button
+                type="submit"
+                loading={clickedMethod === "credentials"}
+                disabled={!email || !password || !!clickedMethod}
+                className="w-full rounded-[4px] bg-black px-4 py-2 text-white hover:bg-gray-900"
+              >
+                Continue
+              </Button>
+              {lastUsed === "credentials" && <LastUsed />}
+            </div>
+          </form>
           <p className="mt-10 w-full max-w-md px-4 text-xs text-muted-foreground sm:px-12">
             By continuing, you agree to Papermark&apos;s{" "}
             <a
