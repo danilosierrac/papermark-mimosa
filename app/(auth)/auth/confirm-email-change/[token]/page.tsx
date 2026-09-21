@@ -20,35 +20,27 @@ export const runtime = "nodejs";
 
 const data = {
   description: "Confirm email change",
-  title: "Confirm email change | Papermark",
+  title: "Confirm email change · mimosa",
   url: "/auth/confirm-email-change",
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.papermark.com"),
+  metadataBase: new URL("https://docs.mimosa.computer"),
   title: data.title,
   description: data.description,
+  icons: { icon: "/_static/favicon.svg" },
   openGraph: {
     title: data.title,
     description: data.description,
     url: data.url,
-    siteName: "Papermark",
-    images: [
-      {
-        url: "/_static/meta-image.png",
-        width: 800,
-        height: 600,
-      },
-    ],
+    siteName: "mimosa",
     locale: "en_US",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: data.title,
     description: data.description,
-    creator: "@papermarkio",
-    images: ["/_static/meta-image.png"],
   },
 };
 

@@ -19,12 +19,18 @@ function isAnalyticsPath(path: string) {
   return pattern.test(path);
 }
 
+// This deployment's own app hosts -- each runs the full app (dashboard,
+// login), not just public view links, so none of them may be treated as a
+// client's custom viewing domain. NEXT_PUBLIC_APP_BASE_HOST is the
+// canonical one (baked into NEXTAUTH_URL, email links, etc.); the others
+// are additive aliases that reach the same app without being canonical.
+const ADDITIONAL_APP_HOSTS = ["docs.mimosaagency.com"];
+
 function isCustomDomain(host: string) {
-  // NEXT_PUBLIC_APP_BASE_HOST is this deployment's own primary host (e.g.
-  // docs.mimosa.computer) -- it runs the full app (dashboard, login), not
-  // just public view links, so it must never be treated as a client's
-  // custom viewing domain.
   const primaryHost = process.env.NEXT_PUBLIC_APP_BASE_HOST;
+  const isOwnAppHost =
+    (primaryHost && host === primaryHost) ||
+    ADDITIONAL_APP_HOSTS.includes(host);
 
   return (
     (process.env.NODE_ENV === "development" &&
@@ -35,7 +41,7 @@ function isCustomDomain(host: string) {
         host?.includes("papermark.io") ||
         host?.includes("papermark.com") ||
         host?.endsWith(".vercel.app") ||
-        (primaryHost && host === primaryHost)
+        isOwnAppHost
       ))
   );
 }

@@ -19,14 +19,13 @@ export default async function DomainMiddleware(req: NextRequest) {
       }
     }
 
-    // No redirect configured for this custom domain's root. Custom domains
-    // only serve public view links here (every other path below gets
-    // rewritten to a document-slug lookup) — the dashboard/login only
-    // exists on the primary app host, so this has to be an absolute
-    // cross-domain redirect, not a same-host "/login" that would just hit
-    // that rewrite and 404.
-    const appUrl = process.env.NEXTAUTH_URL || "https://papermark-mimosa.vercel.app";
-    return NextResponse.redirect(new URL("/login", appUrl));
+    // No redirect configured for this custom domain's root: serve the
+    // login page's content while keeping docs.mimosa.computer in the
+    // address bar (a rewrite, not a redirect — a redirect to the primary
+    // app host would flip the browser over to *.vercel.app instead).
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    return NextResponse.rewrite(loginUrl);
   }
 
   const url = req.nextUrl.clone();

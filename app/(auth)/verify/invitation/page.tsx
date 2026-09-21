@@ -13,36 +13,28 @@ import InvitationStatusContent from "./InvitationStatusContent";
 import CleanUrlOnExpire from "./status/ClientRedirect";
 
 const data = {
-  description: "Accept your team invitation on Papermark",
-  title: "Accept Invitation | Papermark",
+  description: "Accept your team invitation · mimosa docs",
+  title: "Accept invitation · mimosa",
   url: "/verify/invitation",
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.papermark.com"),
+  metadataBase: new URL("https://docs.mimosa.computer"),
   title: data.title,
   description: data.description,
+  icons: { icon: "/_static/favicon.svg" },
   openGraph: {
     title: data.title,
     description: data.description,
     url: data.url,
-    siteName: "Papermark",
-    images: [
-      {
-        url: "/_static/meta-image.png",
-        width: 800,
-        height: 600,
-      },
-    ],
+    siteName: "mimosa",
     locale: "en_US",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: data.title,
     description: data.description,
-    creator: "@papermarkio",
-    images: ["/_static/meta-image.png"],
   },
 };
 
@@ -99,14 +91,14 @@ export default async function VerifyInvitationPage({
           <div className="z-10 mx-auto h-fit w-full max-w-md overflow-hidden rounded-lg">
             <div className="flex flex-col items-center justify-center space-y-3 px-4 py-6 pt-8 text-center sm:px-16">
               <Link href="/">
-                <span className="text-balance text-2xl font-semibold text-gray-800">
-                  Welcome to Papermark
+                <span className="text-balance text-2xl font-semibold lowercase text-gray-800">
+                  mimosa
                 </span>
               </Link>
               {!isExpired && !isRevoked && (
                 <>
                   <h3 className="text-balance py-1 text-sm font-normal text-gray-800">
-                    You&apos;ve been invited to join a team on Papermark
+                    you&apos;ve been invited to join a team
                   </h3>
                   <div className="mt-2 flex w-auto items-center justify-center gap-2 rounded-full bg-gray-50 px-5 py-2.5 text-sm text-gray-600 shadow-sm">
                     <MailIcon className="h-4 w-4 text-gray-400" />
@@ -147,22 +139,13 @@ export default async function VerifyInvitationPage({
                   ) : null}
                 </div>
                 <p className="mt-10 w-full max-w-md px-4 text-xs text-muted-foreground sm:px-16">
-                  By accepting this invitation, you acknowledge that you have
-                  read and agree to Papermark&apos;s{" "}
+                  by accepting this invitation, you acknowledge mimosa&apos;s{" "}
                   <a
-                    href="https://www.papermark.com/terms"
+                    href="https://mimosaagency.com/imprint"
                     target="_blank"
                     className="underline hover:text-gray-900"
                   >
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a
-                    href="https://www.papermark.com/privacy"
-                    target="_blank"
-                    className="underline hover:text-gray-900"
-                  >
-                    Privacy Policy
+                    imprint
                   </a>
                   .
                 </p>
@@ -171,42 +154,12 @@ export default async function VerifyInvitationPage({
           </div>
         </div>
         {/* Right part */}
-        <div className="hidden h-full w-full justify-center bg-gray-800 md:flex md:w-1/2 lg:w-3/5">
-          <div className="flex w-full max-w-5xl px-4 py-20 md:px-8">
-            <div
-              className="mx-auto flex w-full max-w-5xl justify-center rounded-3xl bg-gray-800 px-4 py-20 md:px-8"
-              id="features"
-            >
-              <div className="flex flex-col items-center justify-center">
-                {/* Image container */}
-                <div className="mb-4 h-64 w-64">
-                  <img
-                    className="h-full w-full rounded-2xl object-cover shadow-2xl"
-                    src="/_static/testimonials/jaski.jpeg"
-                    alt="Jaski"
-                  />
-                </div>
-                {/* Text content */}
-                <div className="max-w-xl text-center">
-                  <blockquote className="text-l text-balance leading-8 text-gray-100 sm:text-xl sm:leading-9">
-                    <p>
-                      True builders listen to their users and build what they
-                      need. Thanks Papermark team for solving a big pain point.
-                      DocSend monopoly will end soon!
-                    </p>
-                  </blockquote>
-                  <figcaption className="mt-4">
-                    <div className="text-balance font-semibold text-white">
-                      Jaski
-                    </div>
-                    <div className="text-balance text-gray-400">
-                      Founder, Townhall Network
-                    </div>
-                  </figcaption>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="hidden h-full w-full items-center justify-center bg-black md:flex md:w-1/2 lg:w-3/5">
+          <img
+            src="/_static/mimosa-logo-white.png"
+            alt="mimosa"
+            className="h-10 w-auto"
+          />
         </div>
       </div>
     </>

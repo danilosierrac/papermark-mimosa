@@ -61,6 +61,13 @@ export default async function AppMiddleware(req: NextRequest) {
     };
   };
 
+  // The bare root gets its own minimal landing page instead of a silent
+  // bounce to /login -- an anonymous visitor should see where they are
+  // before being asked for a password.
+  if (!token?.email && path === "/") {
+    return NextResponse.next();
+  }
+
   // UNAUTHENTICATED if there's no token and the path isn't /login, redirect to /login
   if (!token?.email && path !== LOGIN_PATH) {
     const loginUrl = new URL(LOGIN_PATH, req.url);

@@ -54,6 +54,9 @@ scripts/*
 # the retention job is part of the repo
 !scripts/cleanup-view-events.ts
 !scripts/generate-openapi.ts
+# brand-check runs after every deploy to prove no Papermark branding leaked
+!scripts/brand-check.sh
+!scripts/render-email-templates.tsx
 !scripts/mcp-smoke.mjs
 !scripts/check-tool-contracts.sh
 !scripts/check-brand-logo.ts
